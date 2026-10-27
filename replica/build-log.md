@@ -29,3 +29,7 @@ Harder than it looked: Next.js 16's prerender checks (cacheComponents off), the 
 | S25 | 2026-10-28 | done | delete forever (purge handles it) | trash and archive lists with restore |
 | S26 | 2026-10-28 | partial | avatar upload | name, title, time zone, mute kinds, theme, shortcuts |
 | S01 invite | 2026-10-28 | done | | /invite/:token accepts after login and sets the workspace |
+| S08 | 2026-10-28 | done | sort inside a lane | lanes per label plus a no-value lane, drag between lanes, card columns setting |
+| S09 | 2026-10-28 | done | week and day drag of timed events | react-big-calendar on the tokens; chips carry the group colour |
+| S10 | 2026-10-28 | done | dependencies (out of scope), PDF export (out of scope) | own Gantt: five zoom levels, today line, drag to move, drag ends to resize |
+| S11 | 2026-10-28 | partial | stacked bars, group dates by week/month | bar, line and pie by any groupable column; count or a numbers function |

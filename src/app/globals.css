@@ -161,3 +161,12 @@
 .tiptap ol { list-style: decimal; padding-left: 1.25rem; }
 .tiptap p + p { margin-top: 0.5rem; }
 .tiptap a { color: var(--tk-accent-text); text-decoration: underline; text-underline-offset: 2px; }
+
+/* react-big-calendar on our tokens */
+.rbc-calendar { color: var(--tk-text); }
+.rbc-off-range-bg { background: var(--tk-surface); }
+.rbc-today { background: var(--tk-accent-soft); }
+.rbc-header, .rbc-month-view, .rbc-time-view, .rbc-day-bg + .rbc-day-bg, .rbc-month-row + .rbc-month-row, .rbc-header + .rbc-header, .rbc-time-content, .rbc-time-header-content, .rbc-timeslot-group, .rbc-day-slot .rbc-time-slot { border-color: var(--tk-border); }
+.rbc-toolbar button { color: var(--tk-text); border-color: var(--tk-border-strong); border-radius: var(--tk-radius-md); }
+.rbc-toolbar button.rbc-active, .rbc-toolbar button:hover { background: var(--tk-surface-2); color: var(--tk-text); border-color: var(--tk-border-strong); }
+.rbc-show-more { color: var(--tk-accent-text); background: transparent; }

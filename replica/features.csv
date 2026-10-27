@@ -60,10 +60,10 @@ Inline editing in every cell with optimistic update and rollback toast,editing,m
 Keyboard navigation in the table arrows tab enter escape,editing,must,yes,partial,"arrows, Enter, Escape; Tab follows DOM order"
 Keyboard shortcuts for common actions,editing,must,yes,no,shortcut sheet in settings
 Main table view,views,must,yes,yes,
-Kanban view grouped by any status column with chosen card columns,views,must,yes,no,dnd-kit
-Calendar view day week month with drag to change date,views,must,yes,no,own build or MIT library recorded in decisions
-Timeline Gantt view with zoom levels today line drag to move and resize,views,must,yes,no,own build or MIT library recorded in decisions
-Chart view bar stacked line pie by column with count sum avg,views,must,yes,no,Recharts
+Kanban view grouped by any status column with chosen card columns,views,must,yes,yes,dnd-kit lanes; add card per lane
+Calendar view day week month with drag to change date,views,must,yes,yes,"react-big-calendar (MIT), date and timeline columns"
+Timeline Gantt view with zoom levels today line drag to move and resize,views,must,yes,yes,own build; colour by group or status
+Chart view bar stacked line pie by column with count sum avg,views,must,yes,partial,"bar, line, pie; stacked bars pending"
 Saved views add rename duplicate set default delete reorder,views,must,yes,partial,no drag reorder
 Filter quick and advanced with and or rules per column type,views,must,yes,yes,
 Person filter,views,must,yes,yes,

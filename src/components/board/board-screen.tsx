@@ -17,6 +17,10 @@ import { Toolbar, type ToolbarState } from "./toolbar";
 import { TableView } from "./table-view";
 import { ColumnSettingsDialog } from "./column-settings-dialog";
 import { ItemPanel } from "@/components/item/item-panel";
+import { KanbanView } from "@/components/views/kanban-view";
+import { CalendarView } from "@/components/views/calendar-view";
+import { GanttView } from "@/components/views/gantt-view";
+import { ChartView } from "@/components/views/chart-view";
 
 export function BoardScreen({ boardId, itemId }: { boardId: string; itemId?: string }) {
   const query = useBoard(boardId);
@@ -77,11 +81,11 @@ export function BoardScreen({ boardId, itemId }: { boardId: string; itemId?: str
       <ViewsBar snapshot={s} mutations={mutations} activeView={activeView} onSelect={selectView} />
       <Toolbar snapshot={s} mutations={mutations} view={activeView} state={toolbar} onState={setToolbar} />
       <div className="min-h-0 flex-1">
-        {activeView?.type === "table" || !activeView ? (
-          <TableView snapshot={s} index={index} ctx={ctx} mutations={mutations} view={activeView} toolbar={toolbar} flashes={flashes} />
-        ) : (
-          <EmptyState title={`${activeView.name} view`} description="This view type arrives in the next build phase. Switch to the table for now." />
-        )}
+        {activeView?.type === "kanban" ? <KanbanView snapshot={s} index={index} ctx={ctx} mutations={mutations} view={activeView} toolbar={toolbar} />
+          : activeView?.type === "calendar" ? <CalendarView snapshot={s} index={index} ctx={ctx} mutations={mutations} view={activeView} toolbar={toolbar} />
+          : activeView?.type === "timeline" ? <GanttView snapshot={s} index={index} ctx={ctx} mutations={mutations} view={activeView} toolbar={toolbar} />
+          : activeView?.type === "chart" ? <ChartView snapshot={s} index={index} ctx={ctx} mutations={mutations} view={activeView} toolbar={toolbar} />
+          : <TableView snapshot={s} index={index} ctx={ctx} mutations={mutations} view={activeView} toolbar={toolbar} flashes={flashes} />}
       </div>
       <ColumnSettingsDialog column={settingsColumn} onClose={() => setSettingsColumn(null)} snapshot={s} ctx={ctx} mutations={mutations} />
       {itemId ? (
