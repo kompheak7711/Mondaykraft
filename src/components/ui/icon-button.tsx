@@ -1,4 +1,5 @@
 import type { ComponentProps } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 
@@ -7,12 +8,14 @@ type Props = Omit<ComponentProps<typeof Button>, "size"> & {
   /** A count shows a numbered badge; true shows a dot. Put the count in aria-label too. */
   badge?: number | boolean;
   size?: "sm" | "md" | "lg";
+  /** Render as a link to this path (keeps the badge inside the link). */
+  href?: string;
 };
 
-export function IconButton({ badge, size = "md", variant = "ghost", className, children, ...props }: Props) {
+export function IconButton({ badge, size = "md", variant = "ghost", className, children, href, ...props }: Props) {
   const sz = size === "sm" ? "icon-sm" : size === "lg" ? "icon-lg" : "icon";
-  return (
-    <Button variant={variant} size={sz} className={cn("relative", className)} {...props}>
+  const body = (
+    <>
       {children}
       {badge ? (
         <span
@@ -25,6 +28,18 @@ export function IconButton({ badge, size = "md", variant = "ghost", className, c
           {typeof badge === "number" ? (badge > 99 ? "99+" : badge) : null}
         </span>
       ) : null}
+    </>
+  );
+  if (href) {
+    return (
+      <Button variant={variant} size={sz} className={cn("relative", className)} asChild {...props}>
+        <Link href={href}>{body}</Link>
+      </Button>
+    );
+  }
+  return (
+    <Button variant={variant} size={sz} className={cn("relative", className)} {...props}>
+      {body}
     </Button>
   );
 }

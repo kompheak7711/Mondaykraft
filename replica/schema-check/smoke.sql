@@ -19,7 +19,7 @@ select act_as('11111111-1111-1111-1111-111111111111');
 -- F01/F02: workspace and a blank board
 insert into workspaces (id, name, created_by) values ('aaaaaaaa-0000-0000-0000-000000000001', 'Acme', '11111111-1111-1111-1111-111111111111');
 select chk((select role from workspace_members where workspace_id = 'aaaaaaaa-0000-0000-0000-000000000001' and user_id = '11111111-1111-1111-1111-111111111111') = 'owner', 'workspace creator is owner');
-select create_board('aaaaaaaa-0000-0000-0000-000000000001', null, 'Launch', '{}') as bid \gset
+select create_board('aaaaaaaa-0000-0000-0000-000000000001', 'Launch', '{}', null) as bid \gset
 select id as gid from groups where board_id = :'bid' \gset
 select id as scol from columns where board_id = :'bid' and type = 'status' \gset
 select id as pcol from columns where board_id = :'bid' and type = 'people' \gset

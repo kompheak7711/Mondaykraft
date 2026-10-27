@@ -1,76 +1,76 @@
 feature,area,priority,original,clone,notes
-Sign up and log in with email and password,auth,must,yes,no,Supabase Auth
-Log in with Google,auth,should,yes,no,Supabase OAuth provider
+Sign up and log in with email and password,auth,must,yes,yes,Supabase Auth
+Log in with Google,auth,should,yes,partial,button and callback wired; provider keys not configured
 Accept an invite link and join a workspace,auth,must,yes,no,
-Create a workspace,workspace,must,yes,no,account layer folded into workspace
-Rename and delete a workspace,workspace,must,yes,no,
-Workspace roles owner admin member viewer,workspace,must,yes,no,viewer is read-only everywhere
+Create a workspace,workspace,must,yes,yes,account layer folded into workspace
+Rename and delete a workspace,workspace,must,yes,no,settings screen pending
+Workspace roles owner admin member viewer,workspace,must,yes,partial,enforced by RLS; members screen pending
 Invite teammates by email with a role,workspace,must,yes,no,no guest accounts in v1
 Pending invites list with resend and remove,workspace,should,yes,no,
-Folders and sub-folders in the sidebar,workspace,must,yes,no,
-Favorites section,workspace,should,yes,no,
-Left sidebar with workspace switcher and board tree,workspace,must,yes,no,
-Create a board blank or from a template,boards,must,yes,no,
-Five built-in templates project tracker task list content calendar bug tracker CRM-lite,boards,must,yes,no,our own template content
-Rename a board and edit its description,boards,must,yes,no,
+Folders and sub-folders in the sidebar,workspace,must,yes,yes,create and tree; drag to reorder pending
+Favorites section,workspace,should,yes,partial,sidebar section; star toggle UI pending
+Left sidebar with workspace switcher and board tree,workspace,must,yes,yes,
+Create a board blank or from a template,boards,must,yes,yes,
+Five built-in templates project tracker task list content calendar bug tracker CRM-lite,boards,must,yes,yes,our own content
+Rename a board and edit its description,boards,must,yes,yes,
 Duplicate a board structure only or with items or with items and updates,boards,must,yes,no,
-Archive and restore a board,boards,must,yes,no,
-Delete a board to Trash and restore within 30 days,boards,must,yes,no,
-Main vs private board type,boards,should,yes,no,private visible only to invited members
-Board members with owner crown,boards,must,yes,no,
-Board permission sets edit everything only edit content only edit assigned items view and comment,permissions,must,yes,no,enforced by RLS
-Owner member viewer roles per board,permissions,must,yes,no,
-Non-member cannot read a board,permissions,must,yes,no,RLS test required
-Viewer cannot edit cells structure or post updates except comments per permission set,permissions,must,yes,no,RLS test required
-Groups with color title collapse and item count,groups,must,yes,no,
-Add rename recolor duplicate move archive delete a group,groups,must,yes,no,
-Reorder groups by drag-and-drop,groups,must,yes,no,fractional indexing
-Add an item from the inline add row,items,must,yes,no,
-Rename an item inline,items,must,yes,no,
-Reorder items by drag-and-drop,items,must,yes,no,fractional indexing
-Move items between groups by drag-and-drop,items,must,yes,no,
-Duplicate archive delete an item,items,must,yes,no,
-Undo toast after delete,items,should,yes,no,
-Multi-select with a bulk action bar duplicate move archive delete export,items,must,yes,no,
-Item chat bubble with update count,items,must,yes,no,
-Subitems with their own column set,subitems,must,yes,no,items with parent_item_id
+Archive and restore a board,boards,must,yes,partial,archive done; restore needs the trash screen
+Delete a board to Trash and restore within 30 days,boards,must,yes,partial,trash done; restore needs the trash screen
+Main vs private board type,boards,should,yes,yes,private visible only to invited members
+Board members with owner crown,boards,must,yes,partial,roles in DB; members panel pending
+Board permission sets edit everything only edit content only edit assigned items view and comment,permissions,must,yes,yes,owner menu; enforced by RLS and in the UI
+Owner member viewer roles per board,permissions,must,yes,yes,via board_access
+Non-member cannot read a board,permissions,must,yes,yes,RLS; smoke-tested
+Viewer cannot edit cells structure or post updates except comments per permission set,permissions,must,yes,yes,RLS; smoke-tested
+Groups with color title collapse and item count,groups,must,yes,yes,
+Add rename recolor duplicate move archive delete a group,groups,must,yes,partial,no duplicate group yet
+Reorder groups by drag-and-drop,groups,must,yes,partial,menu move up/down; drag pending
+Add an item from the inline add row,items,must,yes,yes,
+Rename an item inline,items,must,yes,yes,
+Reorder items by drag-and-drop,items,must,yes,no,server-side move_rows ready; drag pending
+Move items between groups by drag-and-drop,items,must,yes,partial,bulk bar move to group; drag pending
+Duplicate archive delete an item,items,must,yes,yes,via selection bar
+Undo toast after delete,items,should,yes,yes,
+Multi-select with a bulk action bar duplicate move archive delete export,items,must,yes,partial,no export (out of scope)
+Item chat bubble with update count,items,must,yes,yes,
+Subitems with their own column set,subitems,must,yes,yes,items with parent_item_id
 Subitem roll-up summary on the parent,subitems,should,yes,no,numbers date status tags
 Convert subitem to item and item to subitem,subitems,could,yes,no,
-Column center to add a column by type,columns,must,yes,no,
-Rename resize reorder duplicate delete a column,columns,must,yes,no,drag-and-drop reorder
-Hide columns per view,columns,must,yes,no,saved in view settings
-Status column with custom labels and colors and a done label,columns,must,yes,no,
-Person column single or multiple people,columns,must,yes,no,
-Date column with optional time,columns,must,yes,no,
-Timeline column start and end,columns,must,yes,no,
-Numbers column with unit format and footer sum avg min max count,columns,must,yes,no,
-Text column,columns,must,yes,no,
-Long text column,columns,must,yes,no,
-Dropdown column multi-select with inline option creation,columns,must,yes,no,
-Priority column,columns,must,yes,no,status-like with a fixed starter label set
-Tags column workspace-wide tags,columns,must,yes,no,
-Checkbox column,columns,must,yes,no,
-Link column url and display text,columns,must,yes,no,
-Files column with upload progress and retry,columns,must,yes,no,Supabase Storage with size and type checks
-Progress column rolling up status columns,columns,must,yes,no,
-Last updated column,columns,must,yes,no,derived
-Creation log column,columns,must,yes,no,derived
-Server-side validation of every column value against its type,columns,must,yes,no,Postgres function per type
-Inline editing in every cell with optimistic update and rollback toast,editing,must,yes,no,TanStack Query
-Keyboard navigation in the table arrows tab enter escape,editing,must,yes,no,
+Column center to add a column by type,columns,must,yes,yes,
+Rename resize reorder duplicate delete a column,columns,must,yes,partial,reorder via menu; drag pending
+Hide columns per view,columns,must,yes,yes,saved in view settings
+Status column with custom labels and colors and a done label,columns,must,yes,yes,
+Person column single or multiple people,columns,must,yes,yes,
+Date column with optional time,columns,must,yes,yes,
+Timeline column start and end,columns,must,yes,yes,
+Numbers column with unit format and footer sum avg min max count,columns,must,yes,yes,
+Text column,columns,must,yes,yes,
+Long text column,columns,must,yes,yes,
+Dropdown column multi-select with inline option creation,columns,must,yes,yes,
+Priority column,columns,must,yes,yes,status-like with a fixed starter label set
+Tags column workspace-wide tags,columns,must,yes,yes,
+Checkbox column,columns,must,yes,yes,
+Link column url and display text,columns,must,yes,yes,
+Files column with upload progress and retry,columns,must,yes,partial,upload and list; progress ring and retry pending
+Progress column rolling up status columns,columns,must,yes,yes,
+Last updated column,columns,must,yes,yes,derived
+Creation log column,columns,must,yes,yes,derived
+Server-side validation of every column value against its type,columns,must,yes,yes,Postgres function per type
+Inline editing in every cell with optimistic update and rollback toast,editing,must,yes,yes,TanStack Query
+Keyboard navigation in the table arrows tab enter escape,editing,must,yes,partial,"arrows, Enter, Escape; Tab follows DOM order"
 Keyboard shortcuts for common actions,editing,must,yes,no,shortcut sheet in settings
-Main table view,views,must,yes,no,
+Main table view,views,must,yes,yes,
 Kanban view grouped by any status column with chosen card columns,views,must,yes,no,dnd-kit
 Calendar view day week month with drag to change date,views,must,yes,no,own build or MIT library recorded in decisions
 Timeline Gantt view with zoom levels today line drag to move and resize,views,must,yes,no,own build or MIT library recorded in decisions
 Chart view bar stacked line pie by column with count sum avg,views,must,yes,no,Recharts
-Saved views add rename duplicate set default delete reorder,views,must,yes,no,
-Filter quick and advanced with and or rules per column type,views,must,yes,no,
-Person filter,views,must,yes,no,
-Sort by any column,views,must,yes,no,
-Search within the board,views,must,yes,no,
-Group by a column in the table,views,must,yes,no,
-Filter sort search hide group-by saved per view,views,must,yes,no,
+Saved views add rename duplicate set default delete reorder,views,must,yes,partial,no drag reorder
+Filter quick and advanced with and or rules per column type,views,must,yes,yes,
+Person filter,views,must,yes,yes,
+Sort by any column,views,must,yes,yes,
+Search within the board,views,must,yes,yes,
+Group by a column in the table,views,must,yes,yes,
+Filter sort search hide group-by saved per view,views,must,yes,partial,search and person filter are per session
 Item detail panel with Updates Files Activity tabs,item panel,must,yes,no,
 Rich text updates with mentions,item panel,must,yes,no,TipTap
 Replies to updates,item panel,must,yes,no,
@@ -82,11 +82,11 @@ Activity log per item who what old to new when,item panel,must,yes,no,
 Board activity log,boards,should,yes,no,
 Checklists inside updates,item panel,could,yes,no,
 GIF picker in updates,item panel,could,yes,no,external service; skip unless free and keyless
-Real-time cell and structure changes for everyone on the board,realtime,must,yes,no,Supabase Realtime per board channel
-Presence avatars of who is viewing the board,realtime,must,yes,no,
-Remote changes never overwrite the cell being edited,realtime,must,yes,no,
+Real-time cell and structure changes for everyone on the board,realtime,must,yes,yes,broadcast from database
+Presence avatars of who is viewing the board,realtime,must,yes,yes,
+Remote changes never overwrite the cell being edited,realtime,must,yes,yes,editing registry defers the patch
 Offline indicator with queued edits and resync,realtime,must,yes,no,
-Last-write-wins per cell with activity log,realtime,must,yes,no,
+Last-write-wins per cell with activity log,realtime,must,yes,yes,
 Bell notifications for mentions assignments replies subscriptions automations,notifications,must,yes,no,
 Notification tabs all unread mentioned assigned,notifications,must,yes,no,
 Mark as read and mark all read,notifications,must,yes,no,
@@ -125,7 +125,7 @@ Main vs private dashboards,dashboards,should,yes,no,
 Table widget,dashboards,could,yes,no,
 Global search across boards items and updates,search,must,yes,no,Postgres full-text search
 Command palette,search,should,yes,no,
-Light and dark themes,settings,must,yes,no,
+Light and dark themes,settings,must,yes,yes,
 Profile name avatar timezone,settings,must,yes,no,
 Notification preferences,settings,should,yes,no,in-app only
 Responsive layout with card list on small screens,mobile,must,yes,no,
