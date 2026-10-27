@@ -33,3 +33,5 @@ Harder than it looked: Next.js 16's prerender checks (cacheComponents off), the 
 | S09 | 2026-10-28 | done | week and day drag of timed events | react-big-calendar on the tokens; chips carry the group colour |
 | S10 | 2026-10-28 | done | dependencies (out of scope), PDF export (out of scope) | own Gantt: five zoom levels, today line, drag to move, drag ends to resize |
 | S11 | 2026-10-28 | partial | stacked bars, group dates by week/month | bar, line and pie by any groupable column; count or a numbers function |
+| S14 | 2026-10-28 | done | failed-run badge on the board header | manage list with on/off, run counts, edit, duplicate, trash; run history tab |
+| S15 | 2026-10-28 | done | | sentence builder: four triggers, five condition types, six action types, several actions |

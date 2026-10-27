@@ -97,22 +97,22 @@ My Work items assigned to me across boards grouped by due date,my work,must,yes,
 My Work views by date status priority board,my work,should,yes,no,
 Hide boards from My Work,my work,should,yes,no,
 Add an item from My Work,my work,could,yes,no,
-Automation recipe builder when X and if Y then Z,automations,must,yes,no,rules stored as data
-Trigger status changed,automations,must,yes,no,Postgres trigger
-Trigger item created,automations,must,yes,no,Postgres trigger
-Trigger person assigned,automations,must,yes,no,Postgres trigger
-Trigger date arrives,automations,must,yes,no,pg_cron scheduled job
-Action notify someone with a custom message,automations,must,yes,no,
-Action change status,automations,must,yes,no,
-Action move item to group,automations,must,yes,no,
-Action assign person,automations,must,yes,no,
-Action create item,automations,must,yes,no,
-Action set date,automations,must,yes,no,
-Several actions per automation,automations,should,yes,no,
-Turn an automation on and off duplicate edit delete,automations,must,yes,no,
-Automation run history with failures visible on the board,automations,must,yes,no,
-Loop guard so automations cannot trigger each other endlessly,automations,must,no,no,our addition; depth limit per originating change
-Recipe template gallery,automations,should,yes,no,a dozen starter recipes built from the registry
+Automation recipe builder when X and if Y then Z,automations,must,yes,yes,sentence builder; rules stored as data
+Trigger status changed,automations,must,yes,yes,Postgres trigger
+Trigger item created,automations,must,yes,yes,Postgres trigger
+Trigger person assigned,automations,must,yes,yes,Postgres trigger
+Trigger date arrives,automations,must,yes,yes,"pg_cron tick every minute, workspace time zone"
+Action notify someone with a custom message,automations,must,yes,yes,{item} and {board} placeholders
+Action change status,automations,must,yes,yes,
+Action move item to group,automations,must,yes,yes,
+Action assign person,automations,must,yes,yes,
+Action create item,automations,must,yes,yes,
+Action set date,automations,must,yes,yes,
+Several actions per automation,automations,should,yes,yes,up to ten
+Turn an automation on and off duplicate edit delete,automations,must,yes,yes,
+Automation run history with failures visible on the board,automations,must,yes,yes,Run history tab; failed runs show the error
+Loop guard so automations cannot trigger each other endlessly,automations,must,no,yes,"depth 5, smoke-tested"
+Recipe template gallery,automations,should,yes,yes,six starters that adapt to the board's columns
 Cross-board automations,automations,could,yes,no,
 Dashboards connected to one or more boards,dashboards,must,yes,no,
 Numbers widget,dashboards,must,yes,no,

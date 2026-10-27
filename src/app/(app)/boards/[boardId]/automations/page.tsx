@@ -1,5 +1,9 @@
-import { PageStub } from "@/components/shell/page-stub";
+import type { Metadata } from "next";
+import { AutomationsScreen } from "@/components/automations/automations-screen";
 
-export default function Page() {
-  return <PageStub id="S14" title="Automations" />;
+export const metadata: Metadata = { title: "Automations" };
+
+export default async function AutomationsPage({ params }: { params: Promise<{ boardId: string }> }) {
+  const { boardId } = await params;
+  return <AutomationsScreen boardId={boardId} />;
 }
