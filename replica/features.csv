@@ -1,12 +1,12 @@
 feature,area,priority,original,clone,notes
 Sign up and log in with email and password,auth,must,yes,yes,Supabase Auth
 Log in with Google,auth,should,yes,partial,button and callback wired; provider keys not configured
-Accept an invite link and join a workspace,auth,must,yes,no,
+Accept an invite link and join a workspace,auth,must,yes,yes,copy-link flow; email sending waits for a domain
 Create a workspace,workspace,must,yes,yes,account layer folded into workspace
-Rename and delete a workspace,workspace,must,yes,no,settings screen pending
-Workspace roles owner admin member viewer,workspace,must,yes,partial,enforced by RLS; members screen pending
-Invite teammates by email with a role,workspace,must,yes,no,no guest accounts in v1
-Pending invites list with resend and remove,workspace,should,yes,no,
+Rename and delete a workspace,workspace,must,yes,no,workspace settings pending
+Workspace roles owner admin member viewer,workspace,must,yes,yes,members page; last owner protected
+Invite teammates by email with a role,workspace,must,yes,partial,invite created and link copied by hand; no email yet (D-015)
+Pending invites list with resend and remove,workspace,should,yes,partial,list and withdraw; resend = share the link again
 Folders and sub-folders in the sidebar,workspace,must,yes,yes,create and tree; drag to reorder pending
 Favorites section,workspace,should,yes,partial,sidebar section; star toggle UI pending
 Left sidebar with workspace switcher and board tree,workspace,must,yes,yes,
@@ -14,8 +14,8 @@ Create a board blank or from a template,boards,must,yes,yes,
 Five built-in templates project tracker task list content calendar bug tracker CRM-lite,boards,must,yes,yes,our own content
 Rename a board and edit its description,boards,must,yes,yes,
 Duplicate a board structure only or with items or with items and updates,boards,must,yes,no,
-Archive and restore a board,boards,must,yes,partial,archive done; restore needs the trash screen
-Delete a board to Trash and restore within 30 days,boards,must,yes,partial,trash done; restore needs the trash screen
+Archive and restore a board,boards,must,yes,yes,archive done; restore needs the trash screen
+Delete a board to Trash and restore within 30 days,boards,must,yes,yes,purge job in the backend step
 Main vs private board type,boards,should,yes,yes,private visible only to invited members
 Board members with owner crown,boards,must,yes,partial,roles in DB; members panel pending
 Board permission sets edit everything only edit content only edit assigned items view and comment,permissions,must,yes,yes,owner menu; enforced by RLS and in the UI
@@ -87,13 +87,13 @@ Presence avatars of who is viewing the board,realtime,must,yes,yes,
 Remote changes never overwrite the cell being edited,realtime,must,yes,yes,editing registry defers the patch
 Offline indicator with queued edits and resync,realtime,must,yes,no,
 Last-write-wins per cell with activity log,realtime,must,yes,yes,
-Bell notifications for mentions assignments replies subscriptions automations,notifications,must,yes,no,
-Notification tabs all unread mentioned assigned,notifications,must,yes,no,
-Mark as read and mark all read,notifications,must,yes,no,
+Bell notifications for mentions assignments replies subscriptions automations,notifications,must,yes,yes,page; popover pending
+Notification tabs all unread mentioned assigned,notifications,must,yes,yes,
+Mark as read and mark all read,notifications,must,yes,yes,
 Mute a board,notifications,should,yes,no,
-Inbox feed of updates from followed boards,notifications,must,yes,no,
+Inbox feed of updates from followed boards,notifications,must,yes,yes,every readable board; follow/mute toggles pending
 Email notifications and digests,notifications,skip,yes,skip,out of scope v1 and needs an email service
-My Work items assigned to me across boards grouped by due date,my work,must,yes,no,overdue today this week later without a date
+My Work items assigned to me across boards grouped by due date,my work,must,yes,yes,overdue today this week later without a date
 My Work views by date status priority board,my work,should,yes,no,
 Hide boards from My Work,my work,should,yes,no,
 Add an item from My Work,my work,could,yes,no,
@@ -123,14 +123,14 @@ Resize and reorder widgets,dashboards,must,yes,no,
 Dashboard filters,dashboards,should,yes,no,
 Main vs private dashboards,dashboards,should,yes,no,
 Table widget,dashboards,could,yes,no,
-Global search across boards items and updates,search,must,yes,no,Postgres full-text search
+Global search across boards items and updates,search,must,yes,yes,rpc search; command palette pending
 Command palette,search,should,yes,no,
 Light and dark themes,settings,must,yes,yes,
-Profile name avatar timezone,settings,must,yes,no,
-Notification preferences,settings,should,yes,no,in-app only
+Profile name avatar timezone,settings,must,yes,partial,"name, title, time zone; avatar upload pending"
+Notification preferences,settings,should,yes,partial,saved on the profile; not yet applied when notifying
 Responsive layout with card list on small screens,mobile,must,yes,no,
 Installable PWA with manifest and service worker,mobile,must,yes,no,
-Trash with 30-day retention for boards groups and items,trash,must,yes,no,purge job
+Trash with 30-day retention for boards groups and items,trash,must,yes,yes,restore; purge job in the backend step
 Seed script with a demo workspace three boards automations and a dashboard,dev,must,no,no,our addition
 Share a view publicly or embed it,sharing,skip,yes,skip,out of scope v1
 Export to Excel or PDF,sharing,skip,yes,skip,out of scope v1

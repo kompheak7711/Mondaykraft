@@ -20,3 +20,12 @@ Approach: the data layer is the real one from day one. Local Supabase (`supabase
 
 Harder than it looked: Next.js 16's prerender checks (cacheComponents off), the React Compiler lint rules (inline components hoisted), and `insert ... returning` under RLS, which needed the select policies to work from a row's own columns (see D-008).
 | S06 | 2026-10-28 | done | attach a file from the composer (files go through Files columns for now) | side sheet, all columns as fields, updates with mentions, replies, reactions, pin, files tab, activity tab |
+| S18 | 2026-10-28 | done | views by status/priority/board, hide boards (should) | buckets in the profile time zone; rpc my_work |
+| S19 | 2026-10-28 | partial | bell popover (page for now), mute board | tabs, mark read, mark all read |
+| S20 | 2026-10-28 | done | inline reply (opens the item panel) | 50 latest top-level updates across readable boards |
+| S21 | 2026-10-28 | partial | command palette | rpc search grouped by kind |
+| S23 | 2026-10-28 | done | email sending (link is copied; test addresses only per D-015) | roles, take out, leave, invites with withdraw |
+| S24 | 2026-10-28 | done | preview of columns and rows before choosing | template picker in the New board dialog |
+| S25 | 2026-10-28 | done | delete forever (purge handles it) | trash and archive lists with restore |
+| S26 | 2026-10-28 | partial | avatar upload | name, title, time zone, mute kinds, theme, shortcuts |
+| S01 invite | 2026-10-28 | done | | /invite/:token accepts after login and sets the workspace |
