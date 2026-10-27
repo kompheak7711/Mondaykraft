@@ -1,0 +1,41 @@
+{
+  "_about": "Dark theme values for the same roles. Label backgrounds stay the same so white label text keeps its contrast.",
+  "color": {
+    "bg": "#111318",
+    "surface": "#1a1d23",
+    "surface-2": "#22262e",
+    "border": "#2a2f38",
+    "border-strong": "#3a4150",
+    "border-input": "#6b7480",
+    "text": "#e6e8eb",
+    "text-muted": "#9aa3ae",
+    "accent": "#4f46e5",
+    "accent-hover": "#4338ca",
+    "accent-text": "#a5b4fc",
+    "accent-soft": "#23264a",
+    "on-accent": "#ffffff",
+    "danger": "#f07171",
+    "danger-soft": "#3a1d1d",
+    "success": "#4ade80",
+    "success-soft": "#15301f",
+    "warning": "#f5b547",
+    "warning-soft": "#3a2a10",
+    "label": {
+      "green": "#0b6e3a", "orange": "#c2410c", "red": "#c81e1e", "blue": "#1d4ed8", "purple": "#6d28d9", "teal": "#0f766e",
+      "yellow": "#a16207", "pink": "#be185d", "gray": "#4b5563", "brown": "#78350f", "lime": "#4d7c0f", "sky": "#0369a1"
+    }
+  },
+  "pairs": [
+    ["text", "bg"], ["text", "surface"], ["text", "surface-2"],
+    ["text-muted", "bg"], ["text-muted", "surface"], ["text-muted", "surface-2"],
+    ["on-accent", "accent"], ["on-accent", "accent-hover"],
+    ["accent-text", "bg"], ["accent-text", "surface"], ["accent-text", "accent-soft"],
+    ["danger", "bg"], ["danger", "danger-soft"],
+    ["success", "bg"], ["success", "success-soft"],
+    ["warning", "bg"], ["warning", "warning-soft"],
+    ["border-input", "bg", "ui"], ["border-input", "surface", "ui"], ["accent-text", "bg", "ui"],
+    ["on-accent", "label-green"], ["on-accent", "label-orange"], ["on-accent", "label-red"], ["on-accent", "label-blue"],
+    ["on-accent", "label-purple"], ["on-accent", "label-teal"], ["on-accent", "label-yellow"], ["on-accent", "label-pink"],
+    ["on-accent", "label-gray"], ["on-accent", "label-brown"], ["on-accent", "label-lime"], ["on-accent", "label-sky"]
+  ]
+}

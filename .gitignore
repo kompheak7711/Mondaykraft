@@ -52,3 +52,17 @@ pnpm-debug.log*
 
 # replica reference screenshots are never shipped
 replica/screens/
+
+# from create-next-app
+/node_modules
+/.pnp
+.pnp.*
+!.yarn/patches
+!.yarn/versions
+/coverage
+/.next/
+/out/
+/build
+*.pem
+.pnpm-debug.log*
+.env*
