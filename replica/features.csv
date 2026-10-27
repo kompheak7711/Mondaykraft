@@ -114,14 +114,14 @@ Automation run history with failures visible on the board,automations,must,yes,y
 Loop guard so automations cannot trigger each other endlessly,automations,must,no,yes,"depth 5, smoke-tested"
 Recipe template gallery,automations,should,yes,yes,six starters that adapt to the board's columns
 Cross-board automations,automations,could,yes,no,
-Dashboards connected to one or more boards,dashboards,must,yes,no,
-Numbers widget,dashboards,must,yes,no,
-Chart widget bar and pie,dashboards,must,yes,no,
-Battery widget status progress,dashboards,must,yes,no,
-Workload by person widget,dashboards,must,yes,no,
-Resize and reorder widgets,dashboards,must,yes,no,
+Dashboards connected to one or more boards,dashboards,must,yes,yes,
+Numbers widget,dashboards,must,yes,yes,sum avg min max count over a numbers column per board
+Chart widget bar and pie,dashboards,must,yes,yes,"pie up to six buckets, else bars"
+Battery widget status progress,dashboards,must,yes,yes,
+Workload by person widget,dashboards,must,yes,yes,per ISO week from a date or timeline column
+Resize and reorder widgets,dashboards,must,yes,partial,size steps from the widget settings; drag to reorder pending
 Dashboard filters,dashboards,should,yes,no,
-Main vs private dashboards,dashboards,should,yes,no,
+Main vs private dashboards,dashboards,should,yes,partial,kind stored and enforced; toggle in the UI pending
 Table widget,dashboards,could,yes,no,
 Global search across boards items and updates,search,must,yes,yes,rpc search; command palette pending
 Command palette,search,should,yes,no,

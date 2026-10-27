@@ -35,3 +35,5 @@ Harder than it looked: Next.js 16's prerender checks (cacheComponents off), the 
 | S11 | 2026-10-28 | partial | stacked bars, group dates by week/month | bar, line and pie by any groupable column; count or a numbers function |
 | S14 | 2026-10-28 | done | failed-run badge on the board header | manage list with on/off, run counts, edit, duplicate, trash; run history tab |
 | S15 | 2026-10-28 | done | | sentence builder: four triggers, five condition types, six action types, several actions |
+| S16 | 2026-10-28 | partial | drag to reorder widgets, present mode, dashboard filters (should) | connect boards, four widget types over rpc widget_data, 12-column grid |
+| S17 | 2026-10-28 | done | | per-board source columns, function, title and size in a popover |
