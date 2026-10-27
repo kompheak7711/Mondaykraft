@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
-import { Plus, Settings2 } from "lucide-react";
+import { GripVertical, Plus, Settings2 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,7 +128,8 @@ function Card({ item, cols, s, index, ctx, draggable }: { item: Item; cols: Colu
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id, disabled: !draggable });
   const cells = cellsOf(index, item.id);
   return (
-    <li ref={setNodeRef} {...attributes} {...listeners} className={cn("rounded-md border border-border bg-bg p-2 shadow-card", draggable && "cursor-grab active:cursor-grabbing", isDragging && "opacity-40")}>
+    <li ref={setNodeRef} className={cn("relative rounded-md border border-border bg-bg p-2 pl-6 shadow-card", isDragging && "opacity-40")}>
+      {draggable ? <button type="button" {...attributes} {...listeners} aria-label={`Move ${item.name}`} className="absolute top-2 left-1 cursor-grab rounded-sm text-text-muted hover:text-text active:cursor-grabbing"><GripVertical className="size-4" /></button> : null}
       <Link href={`/boards/${s.board.id}/items/${item.id}?view=${s.views.find((v) => v.type === "kanban")?.id ?? ""}`} className="block text-sm font-medium hover:underline">{item.name}</Link>
       {cols.length ? (
         <dl className="mt-1.5 space-y-0.5 text-xs text-text-muted">

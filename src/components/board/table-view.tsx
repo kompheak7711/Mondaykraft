@@ -145,7 +145,7 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
         const subCount = row.kind === "item" ? subitemsOf(s, item.id).length : 0;
         return (
           <div role="row" className={cn("flex h-row", selected.has(item.id) && "bg-brand-soft")} style={{ width: totalWidth }}>
-            <div className={cn("sticky left-0 z-10 flex shrink-0 items-center border-r border-b border-border", selected.has(item.id) ? "bg-brand-soft" : "bg-bg")} style={{ width: LEFT_W + NAME_W, borderLeft: `4px solid ${row.kind === "item" ? colorVar(row.section.color) : "transparent"}`, paddingLeft: row.kind === "subitem" ? 28 : 0 }}>
+            <div role="gridcell" className={cn("sticky left-0 z-10 flex shrink-0 items-center border-r border-b border-border", selected.has(item.id) ? "bg-brand-soft" : "bg-bg")} style={{ width: LEFT_W + NAME_W, borderLeft: `4px solid ${row.kind === "item" ? colorVar(row.section.color) : "transparent"}`, paddingLeft: row.kind === "subitem" ? 28 : 0 }}>
               <div className="flex w-10 shrink-0 items-center justify-center">
                 <Checkbox checked={selected.has(item.id)} onCheckedChange={(v) => toggleSelect(item.id, v === true)} aria-label={`Select ${item.name}`} className={cn(!selected.has(item.id) && "opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100")} />
               </div>
@@ -172,9 +172,9 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
       case "subheader":
         return (
           <div role="row" className="flex h-8 bg-surface text-xs font-medium text-text-muted" style={{ width: totalWidth }}>
-            <div className="sticky left-0 z-10 flex shrink-0 items-center border-r border-b border-border bg-surface pl-14" style={{ width: LEFT_W + NAME_W }}>Subitems</div>
+            <div role="columnheader" className="sticky left-0 z-10 flex shrink-0 items-center border-r border-b border-border bg-surface pl-14" style={{ width: LEFT_W + NAME_W }}>Subitems</div>
             {subCols.map((c) => <div key={c.id} role="columnheader" className="flex shrink-0 items-center gap-1 border-r border-b border-border px-2" style={{ width: c.width }}><span className="truncate">{c.title}</span></div>)}
-            <div className="flex flex-1 items-center border-b border-border px-1">{canStructure ? <AddColumnButton scope="subitem" mutations={mutations} /> : null}</div>
+            <div role="columnheader" className="flex flex-1 items-center border-b border-border px-1">{canStructure ? <AddColumnButton scope="subitem" mutations={mutations} /> : null}</div>
           </div>
         );
       case "addsub":
@@ -184,11 +184,11 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
       case "footer":
         return (
           <div role="row" className="flex h-8 text-xs text-text-muted" style={{ width: totalWidth }}>
-            <div className="sticky left-0 z-10 shrink-0 border-r border-b border-border bg-bg" style={{ width: LEFT_W + NAME_W }} />
+            <div role="gridcell" className="sticky left-0 z-10 shrink-0 border-r border-b border-border bg-bg" style={{ width: LEFT_W + NAME_W }} />
             {cols.map((c, ci) => {
               const sum = summarize(s, index, c, row.section.items, footerFns[ci]);
               return (
-                <div key={c.id} className="flex shrink-0 items-center overflow-hidden border-r border-b border-border px-2" style={{ width: c.width }} title={sum.battery ? sum.battery.map((b) => `${b.label}: ${b.count}`).join(", ") : undefined}>
+                <div key={c.id} role="gridcell" className="flex shrink-0 items-center overflow-hidden border-r border-b border-border px-2" style={{ width: c.width }} title={sum.battery ? sum.battery.map((b) => `${b.label}: ${b.count}`).join(", ") : undefined}>
                   {sum.text ? <span className="truncate tabular-nums"><span className="mr-1 text-text-muted/70">{footerFns[ci]}</span>{sum.text}</span> : null}
                   {sum.battery ? <span className="flex h-4 w-full overflow-hidden rounded-sm" role="img" aria-label={sum.battery.map((b) => `${b.label} ${b.count}`).join(", ")}>{sum.battery.map((b) => <span key={b.label} className={labelBg[b.color as keyof typeof labelBg] ?? labelBg.gray} style={{ flex: b.count }} />)}</span> : null}
                 </div>
@@ -199,8 +199,10 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
         );
       case "addgroup":
         return (
-          <div className="sticky left-0 flex h-12 items-center px-3" style={{ width: "100%" }}>
-            <Button variant="outline" size="sm" onClick={() => mutations.addGroup()}><Plus /> Add group</Button>
+          <div role="row" className="flex h-12" style={{ width: totalWidth }}>
+            <div role="gridcell" className="sticky left-0 flex items-center px-3">
+              <Button variant="outline" size="sm" onClick={() => mutations.addGroup()}><Plus /> Add group</Button>
+            </div>
           </div>
         );
     }
@@ -213,7 +215,7 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
           <div role="row" className="sticky top-0 z-20 flex bg-bg" style={{ width: totalWidth }}>
             <div role="columnheader" className="sticky left-0 z-30 flex shrink-0 items-center border-r border-b border-border bg-bg px-3 text-xs font-medium text-text-muted" style={{ width: LEFT_W + NAME_W }}>Item</div>
             {cols.map((c) => <ColumnHeader key={c.id} column={c} view={view} canEdit={canStructure} mutations={mutations} onOpenSettings={(col) => ctx.onOpenColumnSettings?.(col)} siblings={cols} />)}
-            <div className="flex flex-1 items-center border-b border-border px-1">{canStructure ? <AddColumnButton scope="item" mutations={mutations} /> : null}</div>
+            <div role="columnheader" className="flex flex-1 items-center border-b border-border px-1">{canStructure ? <AddColumnButton scope="item" mutations={mutations} /> : null}</div>
           </div>
           <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
             {virtualizer.getVirtualItems().map((v) => (
@@ -256,7 +258,7 @@ function AddRow({ width, indent, label, color, onAdd }: { width: number; indent:
   };
   return (
     <div role="row" className="flex h-row" style={{ width }}>
-      <div className="sticky left-0 z-10 flex shrink-0 items-center border-b border-border bg-bg" style={{ width: LEFT_W + NAME_W, borderLeft: `4px solid ${color ? colorVar(color) : "transparent"}`, paddingLeft: indent + 40 }}>
+      <div role="gridcell" className="sticky left-0 z-10 flex shrink-0 items-center border-b border-border bg-bg" style={{ width: LEFT_W + NAME_W, borderLeft: `4px solid ${color ? colorVar(color) : "transparent"}`, paddingLeft: indent + 40 }}>
         {open ? (
           <Input value={name} onChange={(e) => setName(e.target.value)} onBlur={() => { if (name.trim()) submit(); else setOpen(false); }} onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") { setName(""); setOpen(false); } }} placeholder={label} aria-label={label} className="h-7 flex-1" autoFocus maxLength={500} />
         ) : (
@@ -281,7 +283,7 @@ function SectionRow({ section, collapsed, onToggle, canStructure, mutations, sna
   };
   return (
     <div role="row" className="flex h-11 items-end" style={{ width }}>
-      <div className="sticky left-0 z-10 flex h-9 items-center gap-1 bg-bg pr-2" style={{ maxWidth: "100%" }}>
+      <div role="gridcell" className="sticky left-0 z-10 flex h-9 items-center gap-1 bg-bg pr-2" style={{ maxWidth: "100%" }}>
         <button type="button" onClick={onToggle} aria-expanded={!collapsed} aria-label={collapsed ? `Expand ${section.title}` : `Collapse ${section.title}`} className="flex size-7 items-center justify-center rounded-sm hover:bg-surface-2" style={{ color: colorVar(section.color) }}>
           {collapsed ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
         </button>

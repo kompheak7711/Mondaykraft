@@ -150,7 +150,7 @@ export function UpdateBody({ doc }: { doc: JSONContent }) {
     editable: false,
     content: doc,
     extensions: [StarterKit.configure({ heading: false, codeBlock: false, blockquote: false, horizontalRule: false }), Link.configure({ openOnClick: true }), Mention.configure({ HTMLAttributes: { class: "rounded-sm bg-brand-soft px-1 font-medium text-brand-text" }, renderText: ({ node }) => `@${node.attrs.label ?? node.attrs.id}` })],
-    editorProps: { attributes: { class: "tiptap text-sm" } },
+    editorProps: { attributes: { class: "tiptap text-sm", "aria-label": "Update text", "aria-readonly": "true" } },
   });
   useEffect(() => { editor?.commands.setContent(doc); }, [doc, editor]);
   return <EditorContent editor={editor} />;

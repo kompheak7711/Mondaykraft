@@ -42,7 +42,7 @@ export function ViewsBar({ snapshot: s, mutations, activeView, onSelect }: { sna
   };
 
   return (
-    <div role="tablist" aria-label="Views" className="flex h-views-bar shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border px-2 sm:px-4">
+    <nav aria-label="Views" className="flex h-views-bar shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border px-2 sm:px-4">
       {views.map((v) => {
         const meta = viewTypes.find((t) => t.type === v.type) ?? viewTypes[0];
         const Icon = meta.icon;
@@ -52,7 +52,7 @@ export function ViewsBar({ snapshot: s, mutations, activeView, onSelect }: { sna
             {renaming?.id === v.id ? (
               <Input value={name} onChange={(e) => setName(e.target.value)} onBlur={commitRename} onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenaming(null); }} aria-label="View name" className="h-7 w-36" autoFocus maxLength={120} />
             ) : (
-              <button type="button" role="tab" aria-selected={active} onClick={() => onSelect(v.id)} onDoubleClick={() => { if (can) { setRenaming(v); setName(v.name); } }}
+              <button type="button" aria-current={active ? "page" : undefined} onClick={() => onSelect(v.id)} onDoubleClick={() => { if (can) { setRenaming(v); setName(v.name); } }}
                 className={cn("flex h-8 items-center gap-1.5 rounded-md px-2 text-sm hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-brand", active ? "font-medium text-brand-text" : "text-text-muted")}>
                 <Icon className="size-4" aria-hidden /> {v.name}{v.is_default ? <span className="sr-only"> (default)</span> : null}
               </button>
@@ -80,6 +80,6 @@ export function ViewsBar({ snapshot: s, mutations, activeView, onSelect }: { sna
           </DropdownMenuContent>
         </DropdownMenu>
       ) : null}
-    </div>
+    </nav>
   );
 }
