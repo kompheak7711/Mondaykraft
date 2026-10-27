@@ -16,8 +16,9 @@ import { ViewsBar } from "./views-bar";
 import { Toolbar, type ToolbarState } from "./toolbar";
 import { TableView } from "./table-view";
 import { ColumnSettingsDialog } from "./column-settings-dialog";
+import { ItemPanel } from "@/components/item/item-panel";
 
-export function BoardScreen({ boardId }: { boardId: string }) {
+export function BoardScreen({ boardId, itemId }: { boardId: string; itemId?: string }) {
   const query = useBoard(boardId);
   const mutations = useBoardMutations(boardId);
   const s = query.data;
@@ -83,6 +84,10 @@ export function BoardScreen({ boardId }: { boardId: string }) {
         )}
       </div>
       <ColumnSettingsDialog column={settingsColumn} onClose={() => setSettingsColumn(null)} snapshot={s} ctx={ctx} mutations={mutations} />
+      {itemId ? (
+        <ItemPanel itemId={itemId} snapshot={s} index={index} ctx={ctx} mutations={mutations} flashes={flashes}
+          onClose={() => router.push(`/boards/${boardId}${params.get("view") ? `?view=${params.get("view")}` : ""}`)} />
+      ) : null}
     </div>
   );
 }

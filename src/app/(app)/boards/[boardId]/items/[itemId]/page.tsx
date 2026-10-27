@@ -1,5 +1,11 @@
-import { PageStub } from "@/components/shell/page-stub";
+import { Suspense } from "react";
+import { BoardScreen } from "@/components/board/board-screen";
 
-export default function Page() {
-  return <PageStub id="S06" title="Item" />;
+export default async function ItemPage({ params }: { params: Promise<{ boardId: string; itemId: string }> }) {
+  const { boardId, itemId } = await params;
+  return (
+    <Suspense>
+      <BoardScreen boardId={boardId} itemId={itemId} />
+    </Suspense>
+  );
 }

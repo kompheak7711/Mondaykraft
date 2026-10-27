@@ -71,14 +71,14 @@ Sort by any column,views,must,yes,yes,
 Search within the board,views,must,yes,yes,
 Group by a column in the table,views,must,yes,yes,
 Filter sort search hide group-by saved per view,views,must,yes,partial,search and person filter are per session
-Item detail panel with Updates Files Activity tabs,item panel,must,yes,no,
-Rich text updates with mentions,item panel,must,yes,no,TipTap
-Replies to updates,item panel,must,yes,no,
-Likes and emoji reactions,item panel,must,yes,no,
-Pin an update to the top,item panel,should,yes,no,
-Edit and delete own updates,item panel,must,yes,no,
-Files tab listing all files on the item,item panel,must,yes,no,
-Activity log per item who what old to new when,item panel,must,yes,no,
+Item detail panel with Updates Files Activity tabs,item panel,must,yes,yes,
+Rich text updates with mentions,item panel,must,yes,yes,TipTap; mentions notify through the database trigger
+Replies to updates,item panel,must,yes,yes,
+Likes and emoji reactions,item panel,must,yes,yes,six emoji
+Pin an update to the top,item panel,should,yes,yes,
+Edit and delete own updates,item panel,must,yes,yes,owners can remove any
+Files tab listing all files on the item,item panel,must,yes,yes,
+Activity log per item who what old to new when,item panel,must,yes,yes,refreshes every 15 s while open
 Board activity log,boards,should,yes,no,
 Checklists inside updates,item panel,could,yes,no,
 GIF picker in updates,item panel,could,yes,no,external service; skip unless free and keyless

@@ -19,3 +19,4 @@ Approach: the data layer is the real one from day one. Local Supabase (`supabase
 | S29 | 2026-10-28 | done | export (out of scope) | duplicate, move to group, archive, delete, Escape clears |
 
 Harder than it looked: Next.js 16's prerender checks (cacheComponents off), the React Compiler lint rules (inline components hoisted), and `insert ... returning` under RLS, which needed the select policies to work from a row's own columns (see D-008).
+| S06 | 2026-10-28 | done | attach a file from the composer (files go through Files columns for now) | side sheet, all columns as fields, updates with mentions, replies, reactions, pin, files tab, activity tab |
