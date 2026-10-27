@@ -37,3 +37,4 @@ Harder than it looked: Next.js 16's prerender checks (cacheComponents off), the 
 | S15 | 2026-10-28 | done | | sentence builder: four triggers, five condition types, six action types, several actions |
 | S16 | 2026-10-28 | partial | drag to reorder widgets, present mode, dashboard filters (should) | connect boards, four widget types over rpc widget_data, 12-column grid |
 | S17 | 2026-10-28 | done | | per-board source columns, function, title and size in a popover |
+| S27 | 2026-10-28 | partial | service worker, offline queue, card list for the table under 768px | manifest and icon; shell has the mobile drawer |

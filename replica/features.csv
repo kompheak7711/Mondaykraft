@@ -13,7 +13,7 @@ Left sidebar with workspace switcher and board tree,workspace,must,yes,yes,
 Create a board blank or from a template,boards,must,yes,yes,
 Five built-in templates project tracker task list content calendar bug tracker CRM-lite,boards,must,yes,yes,our own content
 Rename a board and edit its description,boards,must,yes,yes,
-Duplicate a board structure only or with items or with items and updates,boards,must,yes,no,
+Duplicate a board structure only or with items or with items and updates,boards,must,yes,yes,files are not copied
 Archive and restore a board,boards,must,yes,yes,archive done; restore needs the trash screen
 Delete a board to Trash and restore within 30 days,boards,must,yes,yes,purge job in the backend step
 Main vs private board type,boards,should,yes,yes,private visible only to invited members
@@ -128,10 +128,10 @@ Command palette,search,should,yes,no,
 Light and dark themes,settings,must,yes,yes,
 Profile name avatar timezone,settings,must,yes,partial,"name, title, time zone; avatar upload pending"
 Notification preferences,settings,should,yes,partial,saved on the profile; not yet applied when notifying
-Responsive layout with card list on small screens,mobile,must,yes,no,
-Installable PWA with manifest and service worker,mobile,must,yes,no,
+Responsive layout with card list on small screens,mobile,must,yes,partial,shell and pages adapt; the table card layout is pending
+Installable PWA with manifest and service worker,mobile,must,yes,partial,manifest and icon; service worker and offline queue pending
 Trash with 30-day retention for boards groups and items,trash,must,yes,yes,restore; purge job in the backend step
-Seed script with a demo workspace three boards automations and a dashboard,dev,must,no,no,our addition
+Seed script with a demo workspace three boards automations and a dashboard,dev,must,no,yes,pnpm seed
 Share a view publicly or embed it,sharing,skip,yes,skip,out of scope v1
 Export to Excel or PDF,sharing,skip,yes,skip,out of scope v1
 Formula column,columns,skip,yes,skip,out of scope v1

@@ -15,6 +15,8 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import type { BoardSnapshot } from "@/lib/board/types";
 import type { BoardMutations } from "@/lib/board/mutations";
 import type { PresencePerson } from "@/lib/board/realtime";
+import { createClient } from "@/lib/supabase/client";
+import { friendlyError } from "@/lib/supabase/errors";
 
 const permissionSets: { value: BoardSnapshot["board"]["permission_set"]; label: string; hint: string }[] = [
   { value: "edit_everything", label: "Edit everything", hint: "Members change items, cells, columns, views and automations." },
@@ -99,7 +101,20 @@ export function BoardHeader({ snapshot: s, mutations, presence }: { snapshot: Bo
                     <DropdownMenuItem asChild><Link href={`/boards/${s.board.id}?panel=members`}>Board members and owners</Link></DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
-                <DropdownMenuItem onSelect={() => toast.info("Duplicate arrives with the backend step.")}>Duplicate board</DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Duplicate board</DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {([["structure", "Structure only"], ["items", "With items"], ["items_updates", "With items and updates"]] as const).map(([mode, label]) => (
+                      <DropdownMenuItem key={mode} onSelect={async () => {
+                        const { data, error } = await createClient().rpc("duplicate_board", { p_board: s.board.id, p_mode: mode });
+                        if (error || !data) { toast.error(friendlyError(error)); return; }
+                        toast.success("Board copied. Automations are switched off on the copy.");
+                        router.push(`/boards/${data}`);
+                        router.refresh();
+                      }}>{label}</DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => setConfirm("archive")}><Archive className="size-4" /> Archive board</DropdownMenuItem>
                 <DropdownMenuItem variant="destructive" onSelect={() => setConfirm("remove")}><Trash2 className="size-4" /> Move board to trash</DropdownMenuItem>

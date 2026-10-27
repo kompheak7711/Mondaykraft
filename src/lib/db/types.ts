@@ -784,6 +784,9 @@ isOneToOne: false
 "delete_label":
 { Args: { "p_column": string,"p_label_id": string,"p_move_to"?: string }; Returns: number
                            },
+"duplicate_board":
+{ Args: { "p_board": string,"p_mode"?: string }; Returns: string
+                           },
 "move_rows":
 { Args: { "p_after"?: string,"p_container"?: string,"p_ids": (string)[],"p_table": string }; Returns: undefined
                            },
