@@ -342,7 +342,7 @@ Soft delete everywhere (`deleted_at`), with a 30-day trash and a purge job.
 
 ## Feature matrix
 
-See `features.csv`. Must: 103, should: 17, could: 6, skip: 19.
+See `features.csv`. Must: 109, should: 17, could: 6, skip: 20.
 
 What the original gates behind paid plans tells us what matters most: Timeline and Gantt views, automations (counted in actions per month), dashboards that combine several boards, private boards. All of these are in v1 at no charge, which is a real difference for a small team.
 
