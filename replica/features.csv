@@ -1,0 +1,153 @@
+feature,area,priority,original,clone,notes
+Sign up and log in with email and password,auth,must,yes,no,Supabase Auth
+Log in with Google,auth,should,yes,no,Supabase OAuth provider
+Accept an invite link and join a workspace,auth,must,yes,no,
+Create a workspace,workspace,must,yes,no,account layer folded into workspace
+Rename and delete a workspace,workspace,must,yes,no,
+Workspace roles owner admin member viewer,workspace,must,yes,no,viewer is read-only everywhere
+Invite teammates by email with a role,workspace,must,yes,no,no guest accounts in v1
+Pending invites list with resend and remove,workspace,should,yes,no,
+Folders and sub-folders in the sidebar,workspace,must,yes,no,
+Favorites section,workspace,should,yes,no,
+Left sidebar with workspace switcher and board tree,workspace,must,yes,no,
+Create a board blank or from a template,boards,must,yes,no,
+Five built-in templates project tracker task list content calendar bug tracker CRM-lite,boards,must,yes,no,our own template content
+Rename a board and edit its description,boards,must,yes,no,
+Duplicate a board structure only or with items or with items and updates,boards,must,yes,no,
+Archive and restore a board,boards,must,yes,no,
+Delete a board to Trash and restore within 30 days,boards,must,yes,no,
+Main vs private board type,boards,should,yes,no,private visible only to invited members
+Board members with owner crown,boards,must,yes,no,
+Board permission sets edit everything only edit content only edit assigned items view and comment,permissions,must,yes,no,enforced by RLS
+Owner member viewer roles per board,permissions,must,yes,no,
+Non-member cannot read a board,permissions,must,yes,no,RLS test required
+Viewer cannot edit cells structure or post updates except comments per permission set,permissions,must,yes,no,RLS test required
+Groups with color title collapse and item count,groups,must,yes,no,
+Add rename recolor duplicate move archive delete a group,groups,must,yes,no,
+Reorder groups by drag-and-drop,groups,must,yes,no,fractional indexing
+Add an item from the inline add row,items,must,yes,no,
+Rename an item inline,items,must,yes,no,
+Reorder items by drag-and-drop,items,must,yes,no,fractional indexing
+Move items between groups by drag-and-drop,items,must,yes,no,
+Duplicate archive delete an item,items,must,yes,no,
+Undo toast after delete,items,should,yes,no,
+Multi-select with a bulk action bar duplicate move archive delete export,items,must,yes,no,
+Item chat bubble with update count,items,must,yes,no,
+Subitems with their own column set,subitems,must,yes,no,items with parent_item_id
+Subitem roll-up summary on the parent,subitems,should,yes,no,numbers date status tags
+Convert subitem to item and item to subitem,subitems,could,yes,no,
+Column center to add a column by type,columns,must,yes,no,
+Rename resize reorder duplicate delete a column,columns,must,yes,no,drag-and-drop reorder
+Hide columns per view,columns,must,yes,no,saved in view settings
+Status column with custom labels and colors and a done label,columns,must,yes,no,
+Person column single or multiple people,columns,must,yes,no,
+Date column with optional time,columns,must,yes,no,
+Timeline column start and end,columns,must,yes,no,
+Numbers column with unit format and footer sum avg min max count,columns,must,yes,no,
+Text column,columns,must,yes,no,
+Long text column,columns,must,yes,no,
+Dropdown column multi-select with inline option creation,columns,must,yes,no,
+Priority column,columns,must,yes,no,status-like with a fixed starter label set
+Tags column workspace-wide tags,columns,must,yes,no,
+Checkbox column,columns,must,yes,no,
+Link column url and display text,columns,must,yes,no,
+Files column with upload progress and retry,columns,must,yes,no,Supabase Storage with size and type checks
+Progress column rolling up status columns,columns,must,yes,no,
+Last updated column,columns,must,yes,no,derived
+Creation log column,columns,must,yes,no,derived
+Server-side validation of every column value against its type,columns,must,yes,no,Postgres function per type
+Inline editing in every cell with optimistic update and rollback toast,editing,must,yes,no,TanStack Query
+Keyboard navigation in the table arrows tab enter escape,editing,must,yes,no,
+Keyboard shortcuts for common actions,editing,must,yes,no,shortcut sheet in settings
+Main table view,views,must,yes,no,
+Kanban view grouped by any status column with chosen card columns,views,must,yes,no,dnd-kit
+Calendar view day week month with drag to change date,views,must,yes,no,own build or MIT library recorded in decisions
+Timeline Gantt view with zoom levels today line drag to move and resize,views,must,yes,no,own build or MIT library recorded in decisions
+Chart view bar stacked line pie by column with count sum avg,views,must,yes,no,Recharts
+Saved views add rename duplicate set default delete reorder,views,must,yes,no,
+Filter quick and advanced with and or rules per column type,views,must,yes,no,
+Person filter,views,must,yes,no,
+Sort by any column,views,must,yes,no,
+Search within the board,views,must,yes,no,
+Group by a column in the table,views,must,yes,no,
+Filter sort search hide group-by saved per view,views,must,yes,no,
+Item detail panel with Updates Files Activity tabs,item panel,must,yes,no,
+Rich text updates with mentions,item panel,must,yes,no,TipTap
+Replies to updates,item panel,must,yes,no,
+Likes and emoji reactions,item panel,must,yes,no,
+Pin an update to the top,item panel,should,yes,no,
+Edit and delete own updates,item panel,must,yes,no,
+Files tab listing all files on the item,item panel,must,yes,no,
+Activity log per item who what old to new when,item panel,must,yes,no,
+Board activity log,boards,should,yes,no,
+Checklists inside updates,item panel,could,yes,no,
+GIF picker in updates,item panel,could,yes,no,external service; skip unless free and keyless
+Real-time cell and structure changes for everyone on the board,realtime,must,yes,no,Supabase Realtime per board channel
+Presence avatars of who is viewing the board,realtime,must,yes,no,
+Remote changes never overwrite the cell being edited,realtime,must,yes,no,
+Offline indicator with queued edits and resync,realtime,must,yes,no,
+Last-write-wins per cell with activity log,realtime,must,yes,no,
+Bell notifications for mentions assignments replies subscriptions automations,notifications,must,yes,no,
+Notification tabs all unread mentioned assigned,notifications,must,yes,no,
+Mark as read and mark all read,notifications,must,yes,no,
+Mute a board,notifications,should,yes,no,
+Inbox feed of updates from followed boards,notifications,must,yes,no,
+Email notifications and digests,notifications,skip,yes,skip,out of scope v1 and needs an email service
+My Work items assigned to me across boards grouped by due date,my work,must,yes,no,overdue today this week later without a date
+My Work views by date status priority board,my work,should,yes,no,
+Hide boards from My Work,my work,should,yes,no,
+Add an item from My Work,my work,could,yes,no,
+Automation recipe builder when X and if Y then Z,automations,must,yes,no,rules stored as data
+Trigger status changed,automations,must,yes,no,Postgres trigger
+Trigger item created,automations,must,yes,no,Postgres trigger
+Trigger person assigned,automations,must,yes,no,Postgres trigger
+Trigger date arrives,automations,must,yes,no,pg_cron scheduled job
+Action notify someone with a custom message,automations,must,yes,no,
+Action change status,automations,must,yes,no,
+Action move item to group,automations,must,yes,no,
+Action assign person,automations,must,yes,no,
+Action create item,automations,must,yes,no,
+Action set date,automations,must,yes,no,
+Several actions per automation,automations,should,yes,no,
+Turn an automation on and off duplicate edit delete,automations,must,yes,no,
+Automation run history with failures visible on the board,automations,must,yes,no,
+Loop guard so automations cannot trigger each other endlessly,automations,must,no,no,our addition; depth limit per originating change
+Recipe template gallery,automations,should,yes,no,a dozen starter recipes built from the registry
+Cross-board automations,automations,could,yes,no,
+Dashboards connected to one or more boards,dashboards,must,yes,no,
+Numbers widget,dashboards,must,yes,no,
+Chart widget bar and pie,dashboards,must,yes,no,
+Battery widget status progress,dashboards,must,yes,no,
+Workload by person widget,dashboards,must,yes,no,
+Resize and reorder widgets,dashboards,must,yes,no,
+Dashboard filters,dashboards,should,yes,no,
+Main vs private dashboards,dashboards,should,yes,no,
+Table widget,dashboards,could,yes,no,
+Global search across boards items and updates,search,must,yes,no,Postgres full-text search
+Command palette,search,should,yes,no,
+Light and dark themes,settings,must,yes,no,
+Profile name avatar timezone,settings,must,yes,no,
+Notification preferences,settings,should,yes,no,in-app only
+Responsive layout with card list on small screens,mobile,must,yes,no,
+Installable PWA with manifest and service worker,mobile,must,yes,no,
+Trash with 30-day retention for boards groups and items,trash,must,yes,no,purge job
+Seed script with a demo workspace three boards automations and a dashboard,dev,must,no,no,our addition
+Share a view publicly or embed it,sharing,skip,yes,skip,out of scope v1
+Export to Excel or PDF,sharing,skip,yes,skip,out of scope v1
+Formula column,columns,skip,yes,skip,out of scope v1
+Time tracking column,columns,skip,yes,skip,out of scope v1
+Connect boards mirror and dependency columns,columns,skip,yes,skip,out of scope v1
+Location country world clock phone email hour week vote rating color picker button auto number columns,columns,skip,yes,skip,not needed by a small team in v1
+Column permissions,permissions,skip,yes,skip,enterprise feature
+Guest accounts,permissions,skip,yes,skip,out of scope v1
+Forms,products,skip,yes,skip,out of scope v1
+WorkDocs,products,skip,yes,skip,out of scope v1
+monday AI and AI columns,products,skip,yes,skip,out of scope v1
+CRM dev service and campaigns products,products,skip,yes,skip,out of scope v1
+Integrations marketplace and partner apps,integrations,skip,yes,skip,their partner network is not part of the product you can rebuild
+Slack Gmail GitHub and other integrations,integrations,skip,yes,skip,out of scope v1
+Billing and plans,billing,skip,yes,skip,v1 is free-tier only
+Native iOS and Android apps,mobile,skip,yes,skip,PWA instead
+SSO audit log DLP HIPAA and account permission matrices,enterprise,skip,yes,skip,enterprise only
+Workload capacity schedules and work weeks,enterprise,skip,yes,skip,simple per-person count in v1
+Their templates illustrations palette wordmark and marketing copy,brand,skip,yes,skip,never copied; we make our own
