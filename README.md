@@ -55,7 +55,7 @@ docs/decisions.md      one entry per significant decision
 
 ## Deploying
 
-Not yet deployed by design (see D-015). When the owner approves: rename the folder and repository to `taskraft`, create a hosted Supabase project and run `supabase db push`, set the environment variables on Vercel, turn on Vercel Deployment Protection for previews, schedule `GET /api/cron/purge` daily, configure Resend as Supabase's SMTP and set `RESEND_API_KEY`. Supabase free tier pauses after a week idle; Vercel Hobby forbids commercial use, so move to Pro before selling.
+Not yet deployed by design (D-015). The step-by-step checklist for a free Supabase project and Vercel Hobby is in `docs/deploy.md`: rename to `taskraft` first (D-001), push the migrations, set the auth redirect URLs, the environment variables and the daily purge cron (`vercel.json`), then create the first real admin through signup instead of the demo seed. Taskraft is for personal and team use only (D-025), which is what Hobby allows. Supabase Free pauses a project after a week idle.
 
 ## Clean room
 

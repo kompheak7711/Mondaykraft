@@ -4,6 +4,8 @@ Date 2026-10-28, after round three. Feature parity from `python3 parity.py repli
 
 **Feature score: 93.2 / 100 (round two 90.3, round one 83.1). Must-haves done: 106 of 107. Verdict: not shippable by the skill's rule**, because one must-have is still partial: invite emails. That one is gated by the owner (D-015) on a verified sending domain, and the copy-link invite flow stands in. No open bugs at any severity; B-001 to B-008 are fixed.
 
+Round four (same score, by design): the five fixes from `replica/fixes.md` are built and tested (whole-board and workspace export, wrap text, hide view, recurring items, revert from activity). They are rows the original does not have, so `parity.py` leaves them out of the score; they count towards "better than the original". Pricing, the help form and the lapsed-plan policy are skipped under D-025 (not for sale).
+
 Layout score: not measured. No screenshots of the original were saved (D-002: public sources only, nothing of theirs in the repo), so `imgdiff.py` has nothing to compare against. The clone's own screenshots are in `replica/clone-screens/` for a later side-by-side from the owner's own account.
 
 ## What round three closed

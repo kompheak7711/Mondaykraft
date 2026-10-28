@@ -43,3 +43,8 @@ Open: none at S1 or S2; none at S3 or S4. Fixed this round: B-004 (S2), B-005 (S
 
 ## Status after round three (2026-10-28)
 Open: none at S1 or S2; none at S3 or S4. Fixed this round: B-008 (S2). Suite: 40 Playwright cases and 13 Vitest tests pass; schema check passes.
+
+## Status after round four (2026-10-28)
+Open: none at S1 or S2; none at S3 or S4. Nothing new reproduced this round: the two red runs of the new spec were test defects (an assertion on the wrong element; a locator that matched history from an earlier run), not product bugs. Suite: 46 Playwright cases and 18 Vitest tests pass; lint and tsc clean.
+
+To check on the hosted project (cannot be reproduced locally): whether `supabase db push` can create the storage policies as `postgres` (docs/deploy.md step 1.4 has the fallback).
