@@ -35,3 +35,5 @@ Flows from `replica/recon.md`. Automated cases live in `e2e/*.spec.ts` (Playwrig
 Edge cases still open (to check, not yet reproduced as bugs): two tabs editing the same cell, offline edits, 2,000-row boards, time zones around midnight for date automations, screen reader pass on the table grid.
 
 Run: `pnpm seed` once, then `pnpm exec playwright test`.
+
+Round two additions (e2e/collab.spec.ts, tests/*.test.ts): two-browser live edits (fixme, B-004), held cell while typing (pass), viewer locked (pass), non-member private board (pass), 2,000-item board (fixme in suite, passes alone); Vitest: 12 unit and database tests (pass).

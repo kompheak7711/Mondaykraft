@@ -23,3 +23,4 @@ Only reproduced defects. Severity: S1 data loss or security, S2 feature broken, 
 - Leads: Ben's click lands while his cell is held by the editing registry after the incoming Stuck patch; or the option list belongs to a popover that closed before the click. Reproduce by hand as demo.ben@example.com before changing code. The case is `test.fixme` until fixed.
 
 - Correction 2026-10-28: commit c247333's message says B-004 closed; it is not. The two-browser case still fails in the suite while the same edit applies in 222 ms by hand (chrome-devtools, demo.ben). B-004 stays open at S2 until the suite run is understood; the case is `test.fixme` again.
+- To check: the 2,000-item scroll case (e2e/collab.spec.ts) passes when run alone and fails inside the full suite; the first assertions (virtualised row count under 200, Row 1 visible, 20 scrolls under 8 s) pass, the final 'Row 2000 rendered' poll is what times out in the suite. Marked fixme until the cause is found.
