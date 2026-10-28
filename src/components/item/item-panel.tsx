@@ -132,7 +132,7 @@ function PanelBody({ item, s, index, ctx, mutations, onClose, flashes }: { item:
           </TabsContent>
           <TabsContent value="activity" className="pt-3">
             {activities.isPending ? <Skeleton className="h-16 w-full" /> : null}
-            {activities.data ? <ActivityList rows={activities.data} snapshot={s} ctx={ctx} empty="Nothing has happened to this item yet." /> : null}
+            {activities.data ? <ActivityList rows={activities.data} snapshot={s} ctx={ctx} empty="Nothing has happened to this item yet." onRevert={async (a) => { await mutations.revertActivity(a); activities.refetch(); }} /> : null}
           </TabsContent>
         </Tabs>
       </div>

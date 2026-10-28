@@ -151,14 +151,14 @@ Native iOS and Android apps,mobile,skip,yes,skip,PWA instead
 SSO audit log DLP HIPAA and account permission matrices,enterprise,skip,yes,skip,enterprise only
 Workload capacity schedules and work weeks,enterprise,skip,yes,skip,simple per-person count in v1
 Their templates illustrations palette wordmark and marketing copy,brand,skip,yes,skip,never copied; we make our own
-One price per person from one person up; no seat minimum; no add-ons,pricing,must,no,no,policy for /replica-launch; fixes.md #1
-Get help reaches a human: page and board context sent to a person's inbox; no bot,support,must,no,no,fixes.md #2; S
-"Export the whole board and workspace as CSV from the menu and settings, on every plan",boards,must,no,no,fixes.md #3; builds on the bulk-bar CSV; S
-A lapsed plan makes boards read-only with export open; nothing is deleted,pricing,must,no,no,fixes.md #4; policy plus a read-only flag
-Revert a cell change from the activity log,item panel,should,no,no,fixes.md #5; 227 votes on the original's board; M
-Wrap text per column (cells and heading),columns,should,no,no,fixes.md #6; 352 votes; S
-"Hide a view from everyone but editors, including the main table",views,should,no,no,fixes.md #7; 209 votes across two threads; S
-Recurring items: every day / week / month create an item like this one,automations,should,no,no,fixes.md #8; 259 votes; M
+One price per person from one person up; no seat minimum; no add-ons,pricing,must,no,skip,D-025: not for sale; fixes.md #1
+Get help reaches a human: page and board context sent to a person's inbox; no bot,support,must,no,skip,D-025: not for sale; fixes.md #2
+"Export the whole board and workspace as CSV from the menu and settings, on every plan",boards,must,no,yes,round four: Board options > Export board (CSV); Settings > Export all boards (zip of one CSV per board); fixes.md #3
+A lapsed plan makes boards read-only with export open; nothing is deleted,pricing,must,no,skip,D-025: no plans; fixes.md #4
+Revert a cell change from the activity log,item panel,should,no,yes,round four: Revert on cell changes and renames in the board and item activity logs; fixes.md #5
+Wrap text per column (cells and heading),columns,should,no,yes,round four: column menu > Wrap text; rows grow; fixes.md #6
+"Hide a view from everyone but editors, including the main table",views,should,no,yes,round four: view menu > Hide view; editors see it greyed; fixes.md #7
+Recurring items: every day / week / month create an item like this one,automations,should,no,yes,"round four: automation trigger 'a day comes round' (day / week / month, workspace time); copies a name and group, not cells; fixes.md #8"
 One web app on every device: same views and filters on a phone; installable,mobile,must,no,yes,PWA plus the card list under 768 px; the original's mobile app is the top complaint theme (268 reviews)
 No AI features anywhere in the product,product,should,no,yes,29 of 100 Trustpilot reviews complain about AI being pushed
 "Dates are typed or picked, never scrolled",columns,could,no,yes,native date input; 50 votes on the original's board

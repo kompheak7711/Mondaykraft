@@ -42,7 +42,8 @@ export function BoardScreen({ boardId, itemId }: { boardId: string; itemId?: str
   const activeView = useMemo(() => {
     if (!s) return undefined;
     const wanted = params.get("view");
-    return s.views.find((v) => v.id === wanted) ?? s.views.find((v) => v.is_default) ?? s.views[0];
+    const allowed = s.access.can_edit_structure ? s.views : s.views.filter((v) => !settingsOf(v).hidden);
+    return allowed.find((v) => v.id === wanted) ?? allowed.find((v) => v.is_default) ?? allowed[0] ?? s.views[0];
   }, [s, params]);
 
   const fromView = (v: ViewRow | undefined): ToolbarState => { const st = settingsOf(v); return { search: st.search ?? "", persons: st.person_filter ?? [] }; };
@@ -104,7 +105,7 @@ export function BoardScreen({ boardId, itemId }: { boardId: string; itemId?: str
           : <TableView snapshot={s} index={index} ctx={ctx} mutations={mutations} view={activeView} toolbar={toolbar} flashes={flashes} />}
       </div>
       <ColumnSettingsDialog column={settingsColumn} onClose={() => setSettingsColumn(null)} snapshot={s} ctx={ctx} mutations={mutations} />
-      <BoardPanels panel={params.get("panel")} snapshot={s} ctx={ctx} onClose={() => { const next = new URLSearchParams(params.toString()); next.delete("panel"); router.replace(`${pathname}${next.size ? `?${next}` : ""}`); }} />
+      <BoardPanels panel={params.get("panel")} snapshot={s} ctx={ctx} mutations={mutations} onClose={() => { const next = new URLSearchParams(params.toString()); next.delete("panel"); router.replace(`${pathname}${next.size ? `?${next}` : ""}`); }} />
       {itemId ? (
         <ItemPanel itemId={itemId} snapshot={s} index={index} ctx={ctx} mutations={mutations} flashes={flashes}
           onClose={() => router.push(`/boards/${boardId}${params.get("view") ? `?view=${params.get("view")}` : ""}`)} />

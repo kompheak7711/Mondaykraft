@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, History, MoreHorizontal, Pencil, Shield, Trash2, Users, Zap } from "lucide-react";
+import { Archive, Download, History, MoreHorizontal, Pencil, Shield, Trash2, Users, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -16,6 +16,9 @@ import type { BoardSnapshot } from "@/lib/board/types";
 import type { BoardMutations } from "@/lib/board/mutations";
 import type { PresencePerson } from "@/lib/board/realtime";
 import { createClient } from "@/lib/supabase/client";
+import { downloadText } from "@/lib/csv";
+import { boardCsv, fileName } from "@/lib/board/export";
+import { cellText } from "@/lib/board/model";
 import { friendlyError } from "@/lib/supabase/errors";
 
 const permissionSets: { value: BoardSnapshot["board"]["permission_set"]; label: string; hint: string }[] = [
@@ -77,6 +80,7 @@ export function BoardHeader({ snapshot: s, mutations, presence }: { snapshot: Bo
               if (d !== null) mutations.updateBoard({ description: d.trim() || null });
             }}>Edit description</DropdownMenuItem> : null}
             <DropdownMenuItem asChild><Link href={`/boards/${s.board.id}?panel=activity`}><History className="size-4" /> Activity log</Link></DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => downloadText(fileName(s.board.name, "csv"), boardCsv({ ...s, text: (i, c) => cellText(s, i, c) }))}><Download className="size-4" /> Export board (CSV)</DropdownMenuItem>
             {owner ? (
               <>
                 <DropdownMenuSeparator />

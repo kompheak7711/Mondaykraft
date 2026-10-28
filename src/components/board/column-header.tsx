@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { ArrowDown, ArrowUp, Copy, EyeOff, GripVertical, MoreHorizontal, Pencil, Plus, Settings2, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, EyeOff, GripVertical, MoreHorizontal, Pencil, Plus, Settings2, Trash2, WrapText } from "lucide-react";
 import { cn } from "cn";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ export function ColumnHeader({ column, view, canEdit, mutations, onOpenSettings,
   const startW = useRef(column.width);
   const settings = settingsOf(view);
   const sortRule = settings.sort?.find((r) => r.column_id === column.id);
+  const wrap = column.settings.wrap === true;
   const index = siblings.findIndex((c) => c.id === column.id);
   const data = { kind: "column", id: column.id, index };
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({ id: `col:${column.id}`, data, disabled: !canEdit });
@@ -72,7 +73,7 @@ export function ColumnHeader({ column, view, canEdit, mutations, onOpenSettings,
   };
 
   return (
-    <div ref={(el) => { setDragRef(el); setDropRef(el); }} role="columnheader" aria-sort={sortRule ? (sortRule.dir === "asc" ? "ascending" : "descending") : "none"} style={{ width: column.width }} className={cn("group/col relative flex h-row shrink-0 items-center gap-1 border-r border-b border-border bg-bg px-2 text-xs font-medium text-text-muted", isDragging && "opacity-40")}>
+    <div ref={(el) => { setDragRef(el); setDropRef(el); }} role="columnheader" aria-sort={sortRule ? (sortRule.dir === "asc" ? "ascending" : "descending") : "none"} style={{ width: column.width }} className={cn("group/col relative flex min-h-row shrink-0 items-center gap-1 border-r border-b border-border bg-bg px-2 text-xs font-medium text-text-muted", isDragging && "opacity-40")}>
       {dropEdge ? <span aria-hidden className={cn("pointer-events-none absolute inset-y-0 z-20 w-0.5 bg-brand", dropEdge === "left" ? "left-0" : "right-0")} /> : null}
       {canEdit ? <button type="button" {...attributes} {...listeners} aria-label={`Move ${column.title} column`} className="-ml-1 flex size-4 shrink-0 cursor-grab items-center justify-center rounded-sm opacity-0 group-hover/col:opacity-100 hover:text-text focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand active:cursor-grabbing"><GripVertical className="size-3.5" /></button> : null}
       <Tooltip>
@@ -82,7 +83,7 @@ export function ColumnHeader({ column, view, canEdit, mutations, onOpenSettings,
       {renaming ? (
         <Input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") { setTitle(column.title); setRenaming(false); } }} aria-label="Column title" className="h-6 min-w-0 flex-1 px-1 text-xs" autoFocus maxLength={120} />
       ) : (
-        <button type="button" onClick={toggleSort} onDoubleClick={() => canEdit && setRenaming(true)} className="min-w-0 flex-1 truncate text-left hover:text-text" title={canEdit ? `${column.title}. Click to sort, double-click to rename` : column.title}>
+        <button type="button" onClick={toggleSort} onDoubleClick={() => canEdit && setRenaming(true)} className={cn("min-w-0 flex-1 text-left hover:text-text", wrap ? "whitespace-normal break-words py-1 leading-tight" : "truncate")} title={canEdit ? `${column.title}. Click to sort, double-click to rename` : column.title}>
           {column.title}
         </button>
       )}
@@ -97,6 +98,7 @@ export function ColumnHeader({ column, view, canEdit, mutations, onOpenSettings,
             <DropdownMenuItem onSelect={() => onOpenSettings(column)}><Settings2 className="size-4" /> Settings</DropdownMenuItem>
             <DropdownMenuItem onSelect={toggleSort}>{sortRule?.dir === "asc" ? <ArrowDown className="size-4" /> : <ArrowUp className="size-4" />} {sortRule ? (sortRule.dir === "asc" ? "Sort descending" : "Clear sort") : "Sort ascending"}</DropdownMenuItem>
             <DropdownMenuItem onSelect={hide}><EyeOff className="size-4" /> Hide in this view</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => mutations.updateColumn(column, { settings: { ...column.settings, wrap: !wrap } })}><WrapText className="size-4" /> {wrap ? "Stop wrapping text" : "Wrap text"}</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled={index <= 0} onSelect={() => mutations.moveColumn(column.id, index > 1 ? siblings[index - 2].id : null)}>Move left</DropdownMenuItem>
             <DropdownMenuItem disabled={index < 0 || index >= siblings.length - 1} onSelect={() => mutations.moveColumn(column.id, siblings[index + 1].id)}>Move right</DropdownMenuItem>

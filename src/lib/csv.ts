@@ -8,9 +8,12 @@ export function toCsv(rows: (string | number | null | undefined)[][]): string {
 }
 
 /** Hands the browser a file to save. */
-export function downloadText(name: string, text: string, type = "text/csv;charset=utf-8") {
-  const url = URL.createObjectURL(new Blob(["﻿" + text], { type }));
+export function downloadBlob(name: string, blob: Blob) {
+  const url = URL.createObjectURL(blob);
   const a = Object.assign(document.createElement("a"), { href: url, download: name });
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** A text file with a UTF-8 BOM, so spreadsheets open accents intact. */
+export const downloadText = (name: string, text: string, type = "text/csv;charset=utf-8") => downloadBlob(name, new Blob(["﻿" + text], { type }));

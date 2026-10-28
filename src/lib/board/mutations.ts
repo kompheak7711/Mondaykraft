@@ -9,6 +9,7 @@ import { friendlyError } from "@/lib/supabase/errors";
 import { enqueue, isNetworkError } from "@/lib/offline";
 import { moduleFor } from "@/lib/columns";
 import type { AssetInfo, CellValue, Column, ColumnType, Item, Tag } from "@/lib/columns/types";
+import type { Tables } from "@/lib/db/helpers";
 import { makeBoardContext } from "./model";
 import { boardKey, patchBoard, removeRow, upsertRow } from "./use-board";
 import { cellKey, type BoardSnapshot, type CellRow, type GroupRow, type ViewRow, type ViewSettings } from "./types";
@@ -87,6 +88,16 @@ export function useBoardMutations(boardId: string) {
         return row ? (row as Item).id : null;
       },
 
+      /** Puts a cell or a name back to what it was before one logged change. */
+      revertActivity(a: Tables<"activities">) {
+        const s = snap();
+        const item = s?.items.find((i) => i.id === a.item_id);
+        if (!s || !item) return Promise.resolve(false);
+        if (a.kind === "item_renamed") return typeof a.old_value === "string" ? api.renameItem(item, a.old_value) : Promise.resolve(false);
+        const column = s.columns.find((c) => c.id === a.column_id);
+        if (!column) return Promise.resolve(false);
+        return api.setCell(item, column, (a.old_value as CellValue) ?? null);
+      },
       renameItem(item: Item, name: string) {
         const next = name.trim();
         if (!next || next === item.name) return;

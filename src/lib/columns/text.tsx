@@ -45,10 +45,11 @@ function TextCell({ column, value, canEdit, onChange, variant }: CellProps) {
     );
   }
   const base = cn("flex h-full w-full min-w-0 items-center px-2 text-left text-sm", variant === "field" && "min-h-8 rounded-md border border-transparent hover:border-border-input");
-  if (!canEdit) return <div className={base} aria-label={`${column.title}: ${text || "empty"}`}><span className="truncate">{text || <Muted>{""}</Muted>}</span></div>;
+  const wrapCls = column.settings.wrap === true ? "whitespace-pre-wrap break-words py-1.5 leading-snug" : "truncate";
+  if (!canEdit) return <div className={base} aria-label={`${column.title}: ${text || "empty"}`}><span className={wrapCls}>{text || <Muted>{""}</Muted>}</span></div>;
   return (
     <button type="button" onClick={() => setEditing(true)} aria-label={`${column.title}: ${text || "empty"}. Press Enter to edit`} className={cn(base, "hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset")}>
-      <span className="truncate">{text || (variant === "field" ? <Muted>Add text</Muted> : "")}</span>
+      <span className={wrapCls}>{text || (variant === "field" ? <Muted>Add text</Muted> : "")}</span>
     </button>
   );
 }
@@ -57,6 +58,7 @@ function LongTextCell({ column, value, canEdit, onChange, variant }: CellProps) 
   const text = textOf(value);
   const [draft, setDraft] = useState(text);
   const firstLine = text.split("\n")[0];
+  const wrap = column.settings.wrap === true;
   return (
     <CellButton
       canEdit={canEdit}
@@ -89,7 +91,7 @@ function LongTextCell({ column, value, canEdit, onChange, variant }: CellProps) 
         </div>
       )}
     >
-      {text ? <span className={cn("truncate", variant === "field" && "line-clamp-3 whitespace-pre-wrap")}>{variant === "field" ? text : firstLine}</span> : <Muted>{variant === "field" ? "Add notes" : ""}</Muted>}
+      {text ? <span className={cn(wrap ? "whitespace-pre-wrap break-words py-1.5 leading-snug" : "truncate", variant === "field" && "line-clamp-3 whitespace-pre-wrap")}>{variant === "field" || wrap ? text : firstLine}</span> : <Muted>{variant === "field" ? "Add notes" : ""}</Muted>}
     </CellButton>
   );
 }

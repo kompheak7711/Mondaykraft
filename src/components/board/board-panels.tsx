@@ -13,18 +13,19 @@ import { createClient } from "@/lib/supabase/client";
 import { friendlyError } from "@/lib/supabase/errors";
 import type { BoardContext } from "@/lib/columns/types";
 import type { BoardSnapshot } from "@/lib/board/types";
+import type { BoardMutations } from "@/lib/board/mutations";
 import { ActivityList } from "./activity-list";
 
 const roles = ["owner", "member", "viewer"] as const;
 type Role = (typeof roles)[number];
 
 /** The right-hand sheets behind `?panel=members` and `?panel=activity`. */
-export function BoardPanels({ panel, snapshot: s, ctx, onClose }: { panel: string | null; snapshot: BoardSnapshot; ctx: BoardContext; onClose: () => void }) {
+export function BoardPanels({ panel, snapshot: s, ctx, mutations, onClose }: { panel: string | null; snapshot: BoardSnapshot; ctx: BoardContext; mutations: BoardMutations; onClose: () => void }) {
   const open = panel === "members" || panel === "activity";
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent side="right" className="w-full gap-0 overflow-y-auto sm:max-w-md">
-        {panel === "members" ? <Members snapshot={s} /> : panel === "activity" ? <Activity snapshot={s} ctx={ctx} /> : null}
+        {panel === "members" ? <Members snapshot={s} /> : panel === "activity" ? <Activity snapshot={s} ctx={ctx} mutations={mutations} /> : null}
       </SheetContent>
     </Sheet>
   );
@@ -88,9 +89,11 @@ function Members({ snapshot: s }: { snapshot: BoardSnapshot }) {
   );
 }
 
-function Activity({ snapshot: s, ctx }: { snapshot: BoardSnapshot; ctx: BoardContext }) {
+function Activity({ snapshot: s, ctx, mutations }: { snapshot: BoardSnapshot; ctx: BoardContext; mutations: BoardMutations }) {
   const supabase = createClient();
-  const q = useQuery({ queryKey: ["board_activities", s.board.id], refetchInterval: 15_000, queryFn: async () => { const { data, error } = await supabase.from("activities").select("*").eq("board_id", s.board.id).order("created_at", { ascending: false }).limit(200); if (error) throw new Error(error.message); return data; } });
+  const client = useQueryClient();
+  const key = ["board_activities", s.board.id];
+  const q = useQuery({ queryKey: key, refetchInterval: 15_000, queryFn: async () => { const { data, error } = await supabase.from("activities").select("*").eq("board_id", s.board.id).order("created_at", { ascending: false }).limit(200); if (error) throw new Error(error.message); return data; } });
   return (
     <>
       <SheetHeader>
@@ -98,7 +101,7 @@ function Activity({ snapshot: s, ctx }: { snapshot: BoardSnapshot; ctx: BoardCon
         <SheetDescription>The last 200 changes on this board, newest first.</SheetDescription>
       </SheetHeader>
       <div className="p-4 pt-0">
-        {q.isPending ? <Skeleton className="h-24 w-full" /> : <ActivityList rows={q.data ?? []} snapshot={s} ctx={ctx} showItem empty="Nothing has happened on this board yet." />}
+        {q.isPending ? <Skeleton className="h-24 w-full" /> : <ActivityList rows={q.data ?? []} snapshot={s} ctx={ctx} showItem empty="Nothing has happened on this board yet." onRevert={async (a) => { if (await mutations.revertActivity(a)) toast.success("Put back"); client.invalidateQueries({ queryKey: key }); }} />}
       </div>
     </>
   );

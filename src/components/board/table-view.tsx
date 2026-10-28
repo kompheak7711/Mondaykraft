@@ -243,7 +243,7 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
         const cells = cellsOf(index, item.id);
         const subCount = row.kind === "item" ? subitemsOf(s, item.id).length : 0;
         return (
-          <DragRow id={`item:${item.id}`} data={{ kind: "item", id: item.id, index: r }} disabled={row.kind !== "item" || !editable || !rowDrag} label={`Move ${item.name}`} className={cn("flex h-row", selected.has(item.id) && "bg-brand-soft")} style={{ width: totalWidth }}>
+          <DragRow id={`item:${item.id}`} data={{ kind: "item", id: item.id, index: r }} disabled={row.kind !== "item" || !editable || !rowDrag} label={`Move ${item.name}`} className={cn("flex min-h-row", selected.has(item.id) && "bg-brand-soft")} style={{ width: totalWidth }}>
             {(handle) => (<>
             <div role="gridcell" className={cn("sticky left-0 z-10 flex shrink-0 items-center border-r border-b border-border", selected.has(item.id) ? "bg-brand-soft" : "bg-bg")} style={{ width: LEFT_W + NAME_W, borderLeft: `4px solid ${row.kind === "item" ? colorVar(row.section.color) : "transparent"}`, paddingLeft: row.kind === "subitem" ? 28 : 0 }}>
               <div className="flex w-10 shrink-0 items-center justify-center">
@@ -322,7 +322,7 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
           </div>
           <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
             {virtualizer.getVirtualItems().map((v) => (
-              <div key={v.key} data-index={v.index} className="group/row absolute top-0 left-0" style={{ transform: `translateY(${v.start}px)`, width: totalWidth, height: v.size }}>
+              <div key={v.key} data-index={v.index} ref={virtualizer.measureElement} className="group/row absolute top-0 left-0" style={{ transform: `translateY(${v.start}px)`, width: totalWidth, minHeight: SIZES[rows[v.index].kind] }}>
                 {renderRow(rows[v.index], v.index)}
                 {drop && drop.id === dropIdOf(rows[v.index]) ? <div aria-hidden className={cn("pointer-events-none absolute inset-x-0 z-30 h-0.5 bg-brand", drop.edge === "top" ? "top-0" : "bottom-0")} /> : null}
               </div>

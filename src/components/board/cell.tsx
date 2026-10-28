@@ -44,7 +44,7 @@ export const CellFrame = memo(function CellFrame({ item, column, value, text, ce
         if (e.key === "Enter" || e.key === "Escape") { const el = e.currentTarget; setTimeout(() => { if (!el.contains(document.activeElement)) endEdit(key); }, 0); }
       }}
       className={cn(
-        variant === "cell" && "relative h-row shrink-0 border-r border-b border-border",
+        variant === "cell" && "relative min-h-row shrink-0 border-r border-b border-border",
         flash && "animate-pulse bg-brand-soft",
       )}
     >

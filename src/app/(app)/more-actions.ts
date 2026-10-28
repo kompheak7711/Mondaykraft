@@ -5,8 +5,33 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { WORKSPACE_COOKIE } from "@/lib/workspace";
+import { boardCsv, fileName } from "@/lib/board/export";
 
 export type FormState = { error?: string; message?: string; link?: string };
+
+/** Every board the caller can open in a workspace, as CSV text, one file per board (the client zips them). */
+export async function exportWorkspace(workspaceId: string): Promise<{ files: { name: string; text: string }[] } | { error: string }> {
+  const supabase = await createClient();
+  const { data: boards, error } = await supabase.from("boards").select("id, name").eq("workspace_id", workspaceId).is("deleted_at", null).order("created_at");
+  if (error) return { error: error.message };
+  const files: { name: string; text: string }[] = [];
+  const seen = new Map<string, number>();
+  for (const b of boards ?? []) {
+    const [groups, columns, items, cells] = await Promise.all([
+      supabase.from("groups").select("id, title, position").eq("board_id", b.id).is("deleted_at", null),
+      supabase.from("columns").select("id, title, scope, position").eq("board_id", b.id).is("deleted_at", null),
+      supabase.from("items").select("id, name, group_id, parent_item_id, position").eq("board_id", b.id).is("deleted_at", null),
+      supabase.from("column_values").select("item_id, column_id, text").eq("board_id", b.id),
+    ]);
+    const bad = groups.error ?? columns.error ?? items.error ?? cells.error;
+    if (bad) return { error: bad.message };
+    const text = new Map((cells.data ?? []).map((c) => [`${c.item_id}:${c.column_id}`, c.text ?? ""]));
+    const n = (seen.get(b.name) ?? 0) + 1;
+    seen.set(b.name, n);
+    files.push({ name: fileName(n > 1 ? `${b.name} (${n})` : b.name, "csv"), text: "\ufeff" + boardCsv({ groups: groups.data ?? [], columns: columns.data ?? [], items: items.data ?? [], text: (i, c) => text.get(`${i}:${c}`) ?? "" }) });
+  }
+  return { files };
+}
 
 export async function markRead(formData: FormData) {
   const supabase = await createClient();

@@ -49,6 +49,8 @@ export type ViewSettings = {
   search?: string;
   sort?: SortRule[];
   hidden_column_ids?: string[];
+  /** editors still see it (greyed); everyone else does not */
+  hidden?: boolean;
   group_by?: string | null;
   kanban_column_id?: string;
   card_column_ids?: string[];

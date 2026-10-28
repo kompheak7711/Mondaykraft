@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, horizontalListSortingStrategy, sortableKeyboardCoordinates, useSortable } from "@dnd-kit/sortable";
-import { BarChart3, CalendarDays, ChevronDown, GanttChart, GripVertical, KanbanSquare, MoreHorizontal, Plus, Table2 } from "lucide-react";
+import { BarChart3, CalendarDays, ChevronDown, EyeOff, GanttChart, GripVertical, KanbanSquare, MoreHorizontal, Plus, Table2 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import type { BoardSnapshot, ViewRow, ViewSettings } from "@/lib/board/types";
+import { settingsOf, type BoardSnapshot, type ViewRow, type ViewSettings } from "@/lib/board/types";
 import type { BoardMutations } from "@/lib/board/mutations";
 
 export const viewTypes: { type: ViewRow["type"]; label: string; icon: typeof Table2; needs?: string }[] = [
@@ -24,7 +24,9 @@ export function ViewsBar({ snapshot: s, mutations, activeView, onSelect }: { sna
   const [renaming, setRenaming] = useState<ViewRow | null>(null);
   const [name, setName] = useState("");
   const can = s.access.can_edit_structure;
-  const views = s.views.slice().sort((a, b) => a.position - b.position);
+  // Hidden views stay on the bar for editors (greyed, with an eye-off icon) and vanish for everyone else.
+  const views = s.views.slice().sort((a, b) => a.position - b.position).filter((v) => can || !settingsOf(v).hidden);
+  const shown = views.filter((v) => !settingsOf(v).hidden).length;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const add = async (type: ViewRow["type"]) => {
@@ -61,6 +63,7 @@ export function ViewsBar({ snapshot: s, mutations, activeView, onSelect }: { sna
               startRename={() => { setRenaming(v); setName(v.name); }} onSelect={() => onSelect(v.id)}
               onDuplicate={async () => { const row = await mutations.addView(v.type, `${v.name} copy`, (v.settings as ViewSettings) ?? {}); if (row) onSelect(row.id); }}
               onDefault={() => mutations.setDefaultView(v)} canRemove={views.length > 1}
+              hidden={Boolean(settingsOf(v).hidden)} canHide={shown > 1} onHide={() => mutations.updateView(v, { settings: { ...settingsOf(v), hidden: !settingsOf(v).hidden || undefined } as never })}
               onRemove={() => { mutations.deleteView(v); const other = views.find((x) => x.id !== v.id); if (other) onSelect(other.id); }} />
           ))}
         </SortableContext>
@@ -77,10 +80,10 @@ export function ViewsBar({ snapshot: s, mutations, activeView, onSelect }: { sna
   );
 }
 
-type TabProps = { view: ViewRow; active: boolean; can: boolean; renaming: boolean; name: string; setName: (n: string) => void; commitRename: () => void; cancelRename: () => void; startRename: () => void; onSelect: () => void; onDuplicate: () => void; onDefault: () => void; canRemove: boolean; onRemove: () => void };
+type TabProps = { view: ViewRow; active: boolean; can: boolean; renaming: boolean; name: string; setName: (n: string) => void; commitRename: () => void; cancelRename: () => void; startRename: () => void; onSelect: () => void; onDuplicate: () => void; onDefault: () => void; canRemove: boolean; onRemove: () => void; hidden: boolean; canHide: boolean; onHide: () => void };
 
 /** One tab: a grip to drag it (pointer, or Space + arrows), the name, and the options menu when active. */
-function ViewTab({ view: v, active, can, renaming, name, setName, commitRename, cancelRename, startRename, onSelect, onDuplicate, onDefault, canRemove, onRemove }: TabProps) {
+function ViewTab({ view: v, active, can, renaming, name, setName, commitRename, cancelRename, startRename, onSelect, onDuplicate, onDefault, canRemove, onRemove, hidden, canHide, onHide }: TabProps) {
   const meta = viewTypes.find((t) => t.type === v.type) ?? viewTypes[0];
   const Icon = meta.icon;
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: v.id, disabled: !can });
@@ -98,7 +101,8 @@ function ViewTab({ view: v, active, can, renaming, name, setName, commitRename, 
       ) : (
         <button type="button" aria-current={active ? "page" : undefined} onClick={onSelect} onDoubleClick={() => { if (can) startRename(); }}
           className={cn("flex h-8 items-center gap-1.5 rounded-md px-2 text-sm hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-brand", active ? "font-medium text-brand-text" : "text-text-muted")}>
-          <Icon className="size-4" aria-hidden /> {v.name}{v.is_default ? <span className="sr-only"> (default)</span> : null}
+          <Icon className="size-4" aria-hidden /> <span className={cn(hidden && "text-text-muted/70 line-through")}>{v.name}</span>{v.is_default ? <span className="sr-only"> (default)</span> : null}
+          {hidden ? <><EyeOff className="size-3.5 text-text-muted" aria-hidden /><span className="sr-only"> (hidden from viewers)</span></> : null}
         </button>
       )}
       {can && active ? (
@@ -108,6 +112,7 @@ function ViewTab({ view: v, active, can, renaming, name, setName, commitRename, 
             <DropdownMenuItem onSelect={startRename}>Rename</DropdownMenuItem>
             <DropdownMenuItem onSelect={onDuplicate}>Duplicate</DropdownMenuItem>
             <DropdownMenuItem disabled={v.is_default} onSelect={onDefault}>Set as default</DropdownMenuItem>
+            <DropdownMenuItem disabled={!hidden && !canHide} onSelect={onHide}>{hidden ? "Show view" : "Hide view"}</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" disabled={!canRemove} onSelect={onRemove}>Remove view</DropdownMenuItem>
           </DropdownMenuContent>

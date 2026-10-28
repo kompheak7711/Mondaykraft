@@ -66,6 +66,23 @@ describe.skipIf(!process.env.CI && false)("database rules", () => {
     await db.query("rollback to savepoint s2");
   });
 
+  it("recurring automations fire once per local day from the cron tick and never twice", async () => {
+    if (!db) return;
+    await db.query("savepoint s2b");
+    const { board, group } = await setup();
+    await db.query(`insert into automations (board_id, name, trigger, actions, created_by) values ($1,'daily', '{"type":"every","every":"day","at_time":"00:00"}', jsonb_build_array(jsonb_build_object('type','create_item','group_id',$2::text,'name','Stand-up {item}')), $3)`, [board, group, ANA]);
+    await db.query("savepoint bad");
+    await expect(db.query(`insert into automations (board_id, name, trigger, actions, created_by) values ($1,'bad', '{"type":"every","every":"fortnight"}', '[{"type":"create_item"}]', $2)`, [board, ANA])).rejects.toThrow(/day, week or month/);
+    await db.query("rollback to savepoint bad");
+    await asUser(null);
+    expect((await db.query(`select public.run_date_automations() as n`)).rows[0].n).toBe(1);
+    expect((await db.query(`select public.run_date_automations() as n`)).rows[0].n).toBe(0);
+    const made = (await db.query(`select name, created_by from items where group_id = $1 and name like 'Stand-up%'`, [group])).rows;
+    expect(made).toEqual([{ name: "Stand-up ", created_by: ANA }]);
+    expect((await db.query(`select count(*)::int as n from automation_runs where board_id = $1 and status = 'ok' and item_id is null and fire_date is not null`, [board])).rows[0].n).toBe(1);
+    await db.query("rollback to savepoint s2b");
+  });
+
   it("permission rules: viewer reads but cannot write, non-member sees nothing, edit_assigned scopes to own items", async () => {
     if (!db) return;
     await db.query("savepoint s3");

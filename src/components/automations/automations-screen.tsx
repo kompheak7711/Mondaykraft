@@ -23,7 +23,8 @@ import { formatRelative } from "@/lib/format";
 
 type AutomationRow = Tables<"automations">;
 type RunRow = Tables<"automation_runs">;
-type Trigger = { type: "item_created" | "status_changed" | "person_assigned" | "date_arrived"; column_id?: string; label_id?: string; user_id?: string; at_time?: string; offset_days?: number };
+type Trigger = { type: "item_created" | "status_changed" | "person_assigned" | "date_arrived" | "every"; column_id?: string; label_id?: string; user_id?: string; at_time?: string; offset_days?: number; every?: "day" | "week" | "month"; weekday?: number; day_of_month?: number };
+const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 type Condition = { type: "status_is" | "status_is_not" | "person_is" | "group_is" | "checkbox_is"; column_id?: string; label_id?: string; user_id?: string; group_id?: string; checked?: boolean };
 type Action = { type: "notify" | "change_status" | "move_to_group" | "assign_person" | "create_item" | "set_date"; to?: "creator" | "assignees" | "user"; user_id?: string; message?: string; column_id?: string; label_id?: string; group_id?: string; name?: string; mode?: "today" | "in_days" | "clear"; days?: number };
 type Draft = { name: string; trigger: Trigger; conditions: Condition[]; actions: Action[] };
@@ -35,6 +36,7 @@ const starters: { title: string; description: string; make: (cols: Column[], gro
   { title: "When someone is assigned, notify them", description: "A note in the bell with the item name.", make: (cols) => { const p = cols.find((x) => x.type === "people"); return p ? { name: "Tell people when they are assigned", trigger: { type: "person_assigned", column_id: p.id }, conditions: [], actions: [{ type: "notify", to: "assignees", column_id: p.id, message: "You were assigned to {item} on {board}" }] } : null; } },
   { title: "When a date arrives, change the status", description: "Flag items on their due day.", make: (cols) => { const d = cols.find((x) => x.type === "date"); const c = cols.find((x) => x.type === "status"); const l = c ? labelsOf(c).find((x) => !x.is_done) : undefined; return d && c && l ? { name: "Due today becomes " + l.label, trigger: { type: "date_arrived", column_id: d.id, at_time: "09:00", offset_days: 0 }, conditions: [], actions: [{ type: "change_status", column_id: c.id, label_id: l.id }] } : null; } },
   { title: "When status changes to stuck, notify the creator", description: "The person who opened the item hears first.", make: (cols) => { const c = cols.find((x) => x.type === "status"); const l = c ? labelsOf(c).find((x) => /stuck|blocked/i.test(x.label)) ?? labelsOf(c)[0] : undefined; return c && l ? { name: "Creator hears when it is " + l.label.toLowerCase(), trigger: { type: "status_changed", column_id: c.id, label_id: l.id }, conditions: [], actions: [{ type: "notify", to: "creator", message: "{item} is now " + l.label + " on {board}" }] } : null; } },
+  { title: "Every week, create an item", description: "A recurring task: it appears on its day, in workspace time.", make: () => ({ name: "Weekly item", trigger: { type: "every", every: "week", at_time: "09:00", weekday: 1 }, conditions: [], actions: [{ type: "create_item", name: "Weekly check-in" }] }) },
   { title: "When an item is created, set the date to today", description: "A start date without typing it.", make: (cols) => { const d = cols.find((x) => x.type === "date"); return d ? { name: "New items dated today", trigger: { type: "item_created" }, conditions: [], actions: [{ type: "set_date", column_id: d.id, mode: "today" }] } : null; } },
 ];
 
@@ -147,7 +149,8 @@ function describe(a: AutomationRow, cols: Column[], groups: { id: string; title:
   const t = a.trigger as Trigger;
   const col = (id?: string) => cols.find((c) => c.id === id)?.title ?? "a column";
   const label = (cid?: string, lid?: string) => { const c = cols.find((x) => x.id === cid); return (c ? labelsOf(c).find((l) => l.id === lid)?.label : undefined) ?? "any label"; };
-  const when = t.type === "item_created" ? "When an item is created" : t.type === "status_changed" ? `When ${col(t.column_id)} changes to ${label(t.column_id, t.label_id)}` : t.type === "person_assigned" ? `When someone is assigned in ${col(t.column_id)}` : `When ${col(t.column_id)} arrives (${t.at_time ?? "09:00"})`;
+  const when = t.type === "item_created" ? "When an item is created" : t.type === "status_changed" ? `When ${col(t.column_id)} changes to ${label(t.column_id, t.label_id)}` : t.type === "person_assigned" ? `When someone is assigned in ${col(t.column_id)}`
+    : t.type === "every" ? `Every ${t.every === "week" ? weekdays[t.weekday ?? 1] : t.every === "month" ? `month on day ${t.day_of_month ?? 1}` : "day"} at ${t.at_time ?? "09:00"}` : `When ${col(t.column_id)} arrives (${t.at_time ?? "09:00"})`;
   const acts = (a.actions as Action[]).map((x) => x.type === "notify" ? "notify" : x.type === "change_status" ? `set ${col(x.column_id)} to ${label(x.column_id, x.label_id)}` : x.type === "move_to_group" ? `move to ${groups.find((g) => g.id === x.group_id)?.title ?? "a group"}` : x.type === "assign_person" ? `assign ${members.find((m) => m.id === x.user_id)?.name ?? "someone"}` : x.type === "create_item" ? "create an item" : `set ${col(x.column_id)}`);
   return `${when}, then ${acts.join(" and ")}`;
 }
@@ -173,12 +176,22 @@ function Builder({ draft, setDraft, cols, groups, members, onSave, onCancel }: {
 
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="font-semibold">When</span>
-        <select className={select} aria-label="Trigger" value={t.type} onChange={(e) => setDraft({ ...draft, trigger: { type: e.target.value as Trigger["type"], column_id: (e.target.value === "status_changed" ? statusCols[0] : e.target.value === "person_assigned" ? peopleCols[0] : e.target.value === "date_arrived" ? dateCols[0] : undefined)?.id, at_time: e.target.value === "date_arrived" ? "09:00" : undefined, offset_days: e.target.value === "date_arrived" ? 0 : undefined } })}>
+        <select className={select} aria-label="Trigger" value={t.type} onChange={(e) => setDraft({ ...draft, trigger: e.target.value === "every" ? { type: "every", every: "day", at_time: "09:00" } : { type: e.target.value as Trigger["type"], column_id: (e.target.value === "status_changed" ? statusCols[0] : e.target.value === "person_assigned" ? peopleCols[0] : e.target.value === "date_arrived" ? dateCols[0] : undefined)?.id, at_time: e.target.value === "date_arrived" ? "09:00" : undefined, offset_days: e.target.value === "date_arrived" ? 0 : undefined } })}>
           <option value="item_created">an item is created</option>
           <option value="status_changed" disabled={!statusCols.length}>a status changes</option>
           <option value="person_assigned" disabled={!peopleCols.length}>a person is assigned</option>
           <option value="date_arrived" disabled={!dateCols.length}>a date arrives</option>
+          <option value="every">a day comes round (recurring)</option>
         </select>
+        {t.type === "every" ? (<>
+          <select className={select} aria-label="Repeat" value={t.every ?? "day"} onChange={(e) => setT({ every: e.target.value as Trigger["every"], weekday: e.target.value === "week" ? 1 : undefined, day_of_month: e.target.value === "month" ? 1 : undefined })}>
+            <option value="day">every day</option><option value="week">every week</option><option value="month">every month</option>
+          </select>
+          {t.every === "week" ? <select className={select} aria-label="Weekday" value={String(t.weekday ?? 1)} onChange={(e) => setT({ weekday: Number(e.target.value) })}>{weekdays.map((d, i) => <option key={d} value={i}>on {d}</option>)}</select> : null}
+          {t.every === "month" ? (<><span>on day</span><Input type="number" min={1} max={31} value={t.day_of_month ?? 1} onChange={(e) => setT({ day_of_month: Math.min(31, Math.max(1, Number(e.target.value) || 1)) })} aria-label="Day of month" className="h-8 w-20" /></>) : null}
+          <span>at</span><Input type="time" value={t.at_time ?? "09:00"} onChange={(e) => setT({ at_time: e.target.value })} aria-label="Time" className="h-8 w-28" />
+          <span className="text-text-muted">(workspace time; short months use their last day)</span>
+        </>) : null}
         {t.type === "status_changed" ? (<>
           <span>in</span>{colSel(t.column_id, statusCols, (id) => setT({ column_id: id, label_id: undefined }), "Status column")}
           <span>to</span>

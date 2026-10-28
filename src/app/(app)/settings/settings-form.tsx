@@ -9,7 +9,11 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { PersonAvatar } from "@/components/ui/avatar-stack";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { shortcuts } from "@/components/shell/shortcuts";
-import { trashWorkspace, updateProfile, updateWorkspace, type FormState } from "../more-actions";
+import { toast } from "sonner";
+import { downloadBlob } from "@/lib/csv";
+import { zip } from "@/lib/zip";
+import { fileName } from "@/lib/board/export";
+import { exportWorkspace, trashWorkspace, updateProfile, updateWorkspace, type FormState } from "../more-actions";
 
 const kinds = [["mention", "Mentions"], ["assigned", "Assignments"], ["reply", "Replies to my updates"], ["update", "New updates on items I follow"], ["automation", "Automation notices"]] as const;
 
@@ -20,6 +24,7 @@ export function SettingsForm({ profile, zones, muted, workspace }: { profile: { 
   const [ws, wsAction, wsPending] = useActionState<FormState, FormData>(updateWorkspace, {});
   const [trash, trashAction, trashPending] = useActionState<FormState, FormData>(trashWorkspace, {});
   const [confirm, setConfirm] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const canEditWorkspace = workspace?.role === "owner" || workspace?.role === "admin";
   return (
     <div className="space-y-8">
@@ -61,6 +66,20 @@ export function SettingsForm({ profile, zones, muted, workspace }: { profile: { 
         <ThemeToggle />
         <p className="text-xs text-text-muted">Saved on this device.</p>
       </section>
+      {workspace ? (
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium">Export</h2>
+          <p className="text-xs text-text-muted">Every board you can open in {workspace.name}, one CSV per board, in a single zip. Your data is always yours to take.</p>
+          <Button type="button" variant="outline" size="sm" disabled={exporting} onClick={async () => {
+            setExporting(true);
+            const r = await exportWorkspace(workspace.id);
+            setExporting(false);
+            if ("error" in r) { toast.error(r.error); return; }
+            if (!r.files.length) { toast("No boards to export yet."); return; }
+            downloadBlob(fileName(workspace.name, "zip"), zip(r.files));
+          }}>{exporting ? "Preparing…" : "Export all boards"}</Button>
+        </section>
+      ) : null}
       {workspace ? (
         <section className="space-y-3">
           <h2 className="text-sm font-medium">Workspace</h2>
