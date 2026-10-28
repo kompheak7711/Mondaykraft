@@ -151,3 +151,15 @@ Native iOS and Android apps,mobile,skip,yes,skip,PWA instead
 SSO audit log DLP HIPAA and account permission matrices,enterprise,skip,yes,skip,enterprise only
 Workload capacity schedules and work weeks,enterprise,skip,yes,skip,simple per-person count in v1
 Their templates illustrations palette wordmark and marketing copy,brand,skip,yes,skip,never copied; we make our own
+One price per person from one person up; no seat minimum; no add-ons,pricing,must,no,no,policy for /replica-launch; fixes.md #1
+Get help reaches a human: page and board context sent to a person's inbox; no bot,support,must,no,no,fixes.md #2; S
+"Export the whole board and workspace as CSV from the menu and settings, on every plan",boards,must,no,no,fixes.md #3; builds on the bulk-bar CSV; S
+A lapsed plan makes boards read-only with export open; nothing is deleted,pricing,must,no,no,fixes.md #4; policy plus a read-only flag
+Revert a cell change from the activity log,item panel,should,no,no,fixes.md #5; 227 votes on the original's board; M
+Wrap text per column (cells and heading),columns,should,no,no,fixes.md #6; 352 votes; S
+"Hide a view from everyone but editors, including the main table",views,should,no,no,fixes.md #7; 209 votes across two threads; S
+Recurring items: every day / week / month create an item like this one,automations,should,no,no,fixes.md #8; 259 votes; M
+One web app on every device: same views and filters on a phone; installable,mobile,must,no,yes,PWA plus the card list under 768 px; the original's mobile app is the top complaint theme (268 reviews)
+No AI features anywhere in the product,product,should,no,yes,29 of 100 Trustpilot reviews complain about AI being pushed
+"Dates are typed or picked, never scrolled",columns,could,no,yes,native date input; 50 votes on the original's board
+Viewers can comment,permissions,should,no,yes,view-and-comment permission set; 49 votes on the original's board
