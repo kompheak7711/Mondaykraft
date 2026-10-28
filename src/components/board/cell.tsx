@@ -38,6 +38,10 @@ export const CellFrame = memo(function CellFrame({ item, column, value, text, ce
       style={style}
       onFocusCapture={() => editable && beginEdit(key)}
       onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) endEdit(key); }}
+      onKeyDownCapture={(e) => {
+        // Enter and Escape unmount inline inputs without a blur event; release the cell once focus has left it.
+        if (e.key === "Enter" || e.key === "Escape") { const el = e.currentTarget; setTimeout(() => { if (!el.contains(document.activeElement)) endEdit(key); }, 0); }
+      }}
       className={cn(
         variant === "cell" && "relative h-row shrink-0 border-r border-b border-border",
         flash && "animate-pulse bg-brand-soft",
