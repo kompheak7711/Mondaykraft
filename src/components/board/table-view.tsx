@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -47,6 +47,18 @@ const NAME_W = 320;
 const TAIL_W = 48;
 const colorVar = (color: string) => `var(--tk-label-${(LABEL_COLORS as readonly string[]).includes(color) ? color : "gray"})`;
 
+function useNarrow() {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setNarrow(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return narrow;
+}
+
 function usePersistedSet(key: string) {
   const [set, setSet] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -67,6 +79,7 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useSearchParams();
   const [collapsed, toggleCollapsed] = usePersistedSet(`tk_collapsed:${s.board.id}`);
+  const narrow = useNarrow();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor));
@@ -171,6 +184,44 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
   const dropIdOf = (row: RowModel) => (row.kind === "item" ? `item:${row.item.id}` : row.kind === "section" && row.section.group ? `group:${row.section.group.id}` : null);
 
   const toggleSelect = (id: string, on: boolean) => setSelected((prev) => { const n = new Set(prev); if (on) n.add(id); else n.delete(id); return n; });
+
+  // Under 768 px the grid becomes a card list: the name, then the first four visible columns as fields.
+  if (narrow) {
+    return (
+      <div className="space-y-5 p-3">
+        {sections.map((section) => (
+          <section key={section.key} aria-label={section.title} className="space-y-2">
+            <h2 className="flex items-center gap-2 text-base font-semibold" style={{ color: colorVar(section.color) }}>{section.title} <span className="text-xs font-normal text-text-muted">{section.items.length} {section.items.length === 1 ? "item" : "items"}</span></h2>
+            <ul className="space-y-2">
+              {section.items.map((item) => {
+                const cells = cellsOf(index, item.id);
+                const editable = canEditItem(s, index, item);
+                return (
+                  <li key={item.id} className="rounded-lg border border-border bg-surface p-3 shadow-card" style={{ borderLeft: `4px solid ${colorVar(section.color)}` }}>
+                    <Link href={`/boards/${s.board.id}/items/${item.id}${viewParam}`} className="block text-sm font-medium hover:underline">{item.name}</Link>
+                    <dl className="mt-2 grid grid-cols-[96px_1fr] items-center gap-x-2 gap-y-1 text-sm">
+                      {cols.slice(0, 4).map((c) => (
+                        <Fragment key={c.id}>
+                          <dt className="truncate text-text-muted">{c.title}</dt>
+                          <dd className="min-w-0"><CellFrame item={item} column={c} value={cells[c.id] ?? null} text={cellText(s, item.id, c.id)} cells={cells} canEdit={editable} board={ctx} variant="field" flash={Boolean(flashes[cellKey(item.id, c.id)])} onChange={(v) => mutations.setCell(item, c, v)} /></dd>
+                        </Fragment>
+                      ))}
+                    </dl>
+                  </li>
+                );
+              })}
+            </ul>
+            {canItems && section.group && !groupByOn ? (
+              <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); const f = e.currentTarget; const name = String(new FormData(f).get("name") ?? "").trim(); if (name) { void mutations.addItem({ groupId: section.group!.id, name }); f.reset(); } }}>
+                <Input name="name" placeholder="Add item" aria-label={`Add item to ${section.title}`} className="h-9 flex-1" maxLength={500} />
+                <Button type="submit" variant="outline" size="sm" className="h-9">Add</Button>
+              </form>
+            ) : null}
+          </section>
+        ))}
+      </div>
+    );
+  }
 
   const renderRow = (row: RowModel, r: number) => {
     switch (row.kind) {

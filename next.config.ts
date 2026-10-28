@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSerwist } from "@serwist/turbopack";
 
 const nextConfig: NextConfig = {
   // Every page is per-user and dynamic; no partial prerendering.
@@ -13,4 +14,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

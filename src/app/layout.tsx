@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type React from "react";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { SerwistProvider } from "@serwist/turbopack/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "./providers";
@@ -29,12 +30,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
       <body className="flex min-h-full flex-col">
-        <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <Providers>
-            <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
-          </Providers>
-          <Toaster position="bottom-left" />
-        </ThemeProvider>
+        <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV === "development"}>
+          <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <Providers>
+              <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+            </Providers>
+            <Toaster position="bottom-left" />
+          </ThemeProvider>
+        </SerwistProvider>
       </body>
     </html>
   );

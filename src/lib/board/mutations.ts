@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyError } from "@/lib/supabase/errors";
+import { enqueue, isNetworkError } from "@/lib/offline";
 import { moduleFor } from "@/lib/columns";
 import type { AssetInfo, CellValue, Column, ColumnType, Item, Tag } from "@/lib/columns/types";
 import { makeBoardContext } from "./model";
@@ -28,13 +29,29 @@ export function useBoardMutations(boardId: string) {
     async function run(optimistic: ((s: BoardSnapshot) => BoardSnapshot) | null, action: () => PromiseLike<Result>, after?: (data: unknown, s: BoardSnapshot) => BoardSnapshot): Promise<unknown> {
       const before = snap();
       if (optimistic) patch(optimistic);
-      const { data, error } = await action();
+      const settle = (data: unknown) => { if (after && data !== null && data !== undefined) patch((s) => after(data, s)); };
+      const { data, error } = navigator.onLine ? await action() : { data: null, error: { message: "offline" } };
       if (error) {
+        if (isNetworkError(error)) {
+          // Keep the optimistic state; the call replays in order once the browser is back online.
+          enqueue({ run: async () => {
+            const r = await action();
+            if (r.error) {
+              if (isNetworkError(r.error)) throw r.error;
+              toast.error(friendlyError(r.error));
+              client.invalidateQueries({ queryKey: boardKey(boardId) });
+              return;
+            }
+            settle(r.data);
+          } });
+          toast("Saved on this device. It syncs when you're back online.", { id: "offline" });
+          return true;
+        }
         if (before) client.setQueryData(boardKey(boardId), before);
         toast.error(friendlyError(error));
         return null;
       }
-      if (after && data !== null && data !== undefined) patch((s) => after(data, s));
+      settle(data);
       return data ?? true;
     }
 

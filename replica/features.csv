@@ -85,7 +85,7 @@ GIF picker in updates,item panel,could,yes,no,external service; skip unless free
 Real-time cell and structure changes for everyone on the board,realtime,must,yes,yes,broadcast from database
 Presence avatars of who is viewing the board,realtime,must,yes,yes,
 Remote changes never overwrite the cell being edited,realtime,must,yes,yes,editing registry defers the patch
-Offline indicator with queued edits and resync,realtime,must,yes,no,
+Offline indicator with queued edits and resync,realtime,must,yes,yes,badge in the top bar; edits queue in order and replay on reconnect (in memory; lost on reload)
 Last-write-wins per cell with activity log,realtime,must,yes,yes,
 Bell notifications for mentions assignments replies subscriptions automations,notifications,must,yes,yes,page; popover pending
 Notification tabs all unread mentioned assigned,notifications,must,yes,yes,
@@ -128,8 +128,8 @@ Command palette,search,should,yes,no,
 Light and dark themes,settings,must,yes,yes,
 Profile name avatar timezone,settings,must,yes,partial,"name, title, time zone; avatar upload pending"
 Notification preferences,settings,should,yes,partial,saved on the profile; not yet applied when notifying
-Responsive layout with card list on small screens,mobile,must,yes,partial,shell and pages adapt; the table card layout is pending
-Installable PWA with manifest and service worker,mobile,must,yes,partial,manifest and icon; service worker and offline queue pending
+Responsive layout with card list on small screens,mobile,must,yes,yes,table becomes a card list under 768 px
+Installable PWA with manifest and service worker,mobile,must,yes,yes,Serwist worker at /serwist/sw.js (production only) with an offline fallback page
 Trash with 30-day retention for boards groups and items,trash,must,yes,yes,restore; purge job in the backend step
 Seed script with a demo workspace three boards automations and a dashboard,dev,must,no,yes,pnpm seed
 Share a view publicly or embed it,sharing,skip,yes,skip,out of scope v1
