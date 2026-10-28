@@ -36,6 +36,37 @@ export async function updateProfile(_prev: FormState, formData: FormData): Promi
   return { message: "Saved." };
 }
 
+export async function updateWorkspace(_prev: FormState, formData: FormData): Promise<FormState> {
+  const supabase = await createClient();
+  const id = String(formData.get("workspaceId") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const timezone = String(formData.get("timezone") ?? "UTC");
+  if (!name) return { error: "The workspace needs a name." };
+  const { data, error } = await supabase.from("workspaces").update({ name, timezone }).eq("id", id).select("id");
+  if (error || !data?.length) return { error: "Could not rename the workspace. Only owners and admins can." };
+  revalidatePath("/", "layout");
+  return { message: "Saved." };
+}
+
+/** Owners only, and never the last workspace: there would be no page left to restore it from. */
+export async function trashWorkspace(_prev: FormState, formData: FormData): Promise<FormState> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const id = String(formData.get("workspaceId") ?? "");
+  const [{ data: me }, { count }] = await Promise.all([
+    supabase.from("workspace_members").select("role").eq("workspace_id", id).eq("user_id", user.id).maybeSingle(),
+    supabase.from("workspaces").select("id", { count: "exact", head: true }).is("deleted_at", null),
+  ]);
+  if (me?.role !== "owner") return { error: "Only a workspace owner can do that." };
+  if ((count ?? 0) <= 1) return { error: "Create another workspace first; you can't trash the only one you have." };
+  const { error } = await supabase.from("workspaces").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+  if (error) return { error: "Could not move the workspace to the trash." };
+  (await cookies()).set(WORKSPACE_COOKIE, "", { path: "/", maxAge: 0 });
+  revalidatePath("/", "layout");
+  redirect("/");
+}
+
 export async function inviteMember(_prev: FormState, formData: FormData): Promise<FormState> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -78,7 +109,8 @@ export async function restoreThing(formData: FormData) {
   const supabase = await createClient();
   const kind = String(formData.get("kind") ?? "");
   const id = String(formData.get("id") ?? "");
-  if (kind === "archived_board") await supabase.from("boards").update({ archived_at: null }).eq("id", id);
+  if (kind === "workspace") await supabase.from("workspaces").update({ deleted_at: null }).eq("id", id);
+  else if (kind === "archived_board") await supabase.from("boards").update({ archived_at: null }).eq("id", id);
   else if (kind === "archived_group") await supabase.from("groups").update({ archived_at: null }).eq("id", id);
   else if (kind === "archived_item") await supabase.rpc("bulk_items", { p_action: "restore", p_ids: [id] });
   else await supabase.rpc("restore", { p_kind: kind, p_id: id });

@@ -1,18 +1,25 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Kbd } from "@/components/ui/kbd";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { updateProfile, type FormState } from "../more-actions";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { shortcuts } from "@/components/shell/shortcuts";
+import { trashWorkspace, updateProfile, updateWorkspace, type FormState } from "../more-actions";
 
 const kinds = [["mention", "Mentions"], ["assigned", "Assignments"], ["reply", "Replies to my updates"], ["update", "New updates on items I follow"], ["automation", "Automation notices"]] as const;
-const shortcuts = [["⌘ K", "Search"], ["↑ ↓ ← →", "Move between cells"], ["Enter", "Open the cell editor"], ["Esc", "Close an editor or clear the selection"], ["F2", "Rename the focused item"], ["⌘ ↵", "Post an update"]] as const;
 
-export function SettingsForm({ profile, zones, muted }: { profile: { name: string; title: string; timezone: string }; zones: string[]; muted: string[] }) {
+type Workspace = { id: string; name: string; timezone: string; role: string };
+
+export function SettingsForm({ profile, zones, muted, workspace }: { profile: { name: string; title: string; timezone: string }; zones: string[]; muted: string[]; workspace: Workspace | null }) {
   const [state, action, pending] = useActionState<FormState, FormData>(updateProfile, {});
+  const [ws, wsAction, wsPending] = useActionState<FormState, FormData>(updateWorkspace, {});
+  const [trash, trashAction, trashPending] = useActionState<FormState, FormData>(trashWorkspace, {});
+  const [confirm, setConfirm] = useState(false);
+  const canEditWorkspace = workspace?.role === "owner" || workspace?.role === "admin";
   return (
     <div className="space-y-8">
       <form action={action} className="space-y-5">
@@ -44,6 +51,51 @@ export function SettingsForm({ profile, zones, muted }: { profile: { name: strin
         <ThemeToggle />
         <p className="text-xs text-text-muted">Saved on this device.</p>
       </section>
+      {workspace ? (
+        <section className="space-y-3">
+          <h2 className="text-sm font-medium">Workspace</h2>
+          {canEditWorkspace ? (
+            <form action={wsAction} className="space-y-3">
+              <input type="hidden" name="workspaceId" value={workspace.id} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5"><Label htmlFor="ws-name">Workspace name</Label><Input id="ws-name" name="name" defaultValue={workspace.name} required maxLength={120} /></div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="ws-timezone">Automations run in</Label>
+                  <select id="ws-timezone" name="timezone" defaultValue={workspace.timezone} className="h-8 w-full rounded-md border border-border-input bg-bg px-2 text-sm">
+                    {zones.map((z) => <option key={z} value={z}>{z}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button type="submit" variant="outline" disabled={wsPending} aria-busy={wsPending}>Rename workspace</Button>
+                {ws.message ? <span role="status" className="text-sm text-success">{ws.message}</span> : null}
+                {ws.error ? <span role="alert" className="text-sm text-danger">{ws.error}</span> : null}
+              </div>
+            </form>
+          ) : <p className="text-sm text-text-muted">Only owners and admins can rename this workspace.</p>}
+          {workspace.role === "owner" ? (
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="destructive" size="sm" onClick={() => setConfirm(true)}>Move workspace to trash</Button>
+              {trash.error ? <span role="alert" className="text-sm text-danger">{trash.error}</span> : null}
+            </div>
+          ) : null}
+          <Dialog open={confirm} onOpenChange={setConfirm}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Move “{workspace.name}” to the trash?</DialogTitle>
+                <DialogDescription>Its boards, dashboards and members go with it. You can restore it from Trash for 30 days.</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline" autoFocus>Cancel</Button></DialogClose>
+                <form action={trashAction} onSubmit={() => setConfirm(false)}>
+                  <input type="hidden" name="workspaceId" value={workspace.id} />
+                  <Button type="submit" variant="destructive" disabled={trashPending}>Move to trash</Button>
+                </form>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </section>
+      ) : null}
       <section className="space-y-2">
         <h2 className="text-sm font-medium">Keyboard shortcuts</h2>
         <ul className="divide-y divide-border rounded-lg border border-border">

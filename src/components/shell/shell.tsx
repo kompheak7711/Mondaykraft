@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Sidebar, type SidebarData } from "./sidebar";
 import { TopBar } from "./topbar";
+import { Shortcuts } from "./shortcuts";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 type Props = SidebarData & {
@@ -46,6 +47,7 @@ export function Shell({ children, profile, unread, ...sidebar }: Props) {
           {children}
         </main>
       </div>
+      <Shortcuts />
     </div>
   );
 }

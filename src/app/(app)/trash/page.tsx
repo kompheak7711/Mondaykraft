@@ -17,13 +17,15 @@ export default async function TrashPage() {
   const { data: workspaces } = await supabase.from("workspaces").select("id, name").is("deleted_at", null).order("created_at");
   const current = pickWorkspace((await cookies()).get(WORKSPACE_COOKIE)?.value, workspaces ?? []);
   if (!current) return null;
-  const [{ data: boards }, { data: groups }, { data: items }] = await Promise.all([
+  const [{ data: boards }, { data: groups }, { data: items }, { data: gone }] = await Promise.all([
     supabase.from("boards").select("id, name, deleted_at, archived_at").eq("workspace_id", current.id).or("deleted_at.not.is.null,archived_at.not.is.null"),
     supabase.from("groups").select("id, title, deleted_at, archived_at, boards!inner(name, workspace_id, deleted_at)").eq("boards.workspace_id", current.id).is("boards.deleted_at", null).or("deleted_at.not.is.null,archived_at.not.is.null"),
     supabase.from("items").select("id, name, deleted_at, archived_at, parent_item_id, boards!inner(name, workspace_id, deleted_at), groups(deleted_at)").eq("boards.workspace_id", current.id).is("boards.deleted_at", null).or("deleted_at.not.is.null,archived_at.not.is.null").limit(300),
+    supabase.from("workspaces").select("id, name, deleted_at").not("deleted_at", "is", null),
   ]);
   const trashed: Row[] = [];
   const archived: Row[] = [];
+  for (const w of gone ?? []) trashed.push({ kind: "workspace", id: w.id, title: w.name, detail: "Workspace", when: w.deleted_at! });
   for (const b of boards ?? []) (b.deleted_at ? trashed : archived).push({ kind: b.deleted_at ? "board" : "archived_board", id: b.id, title: b.name, detail: "Board", when: b.deleted_at ?? b.archived_at! });
   for (const g of groups ?? []) {
     const board = g.boards as unknown as { name: string };

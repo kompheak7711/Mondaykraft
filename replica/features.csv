@@ -3,7 +3,7 @@ Sign up and log in with email and password,auth,must,yes,yes,Supabase Auth
 Log in with Google,auth,should,yes,partial,button and callback wired; provider keys not configured
 Accept an invite link and join a workspace,auth,must,yes,yes,copy-link flow; email sending waits for a domain
 Create a workspace,workspace,must,yes,yes,account layer folded into workspace
-Rename and delete a workspace,workspace,must,yes,no,workspace settings pending
+Rename and delete a workspace,workspace,must,yes,yes,settings page: owners and admins rename; owners trash (30-day restore from Trash); the last workspace cannot be trashed
 Workspace roles owner admin member viewer,workspace,must,yes,yes,members page; last owner protected
 Invite teammates by email with a role,workspace,must,yes,partial,invite created and link copied by hand; no email yet (D-015)
 Pending invites list with resend and remove,workspace,should,yes,partial,list and withdraw; resend = share the link again
@@ -58,7 +58,7 @@ Creation log column,columns,must,yes,yes,derived
 Server-side validation of every column value against its type,columns,must,yes,yes,Postgres function per type
 Inline editing in every cell with optimistic update and rollback toast,editing,must,yes,yes,TanStack Query
 Keyboard navigation in the table arrows tab enter escape,editing,must,yes,partial,"arrows, Enter, Escape; Tab follows DOM order"
-Keyboard shortcuts for common actions,editing,must,yes,no,shortcut sheet in settings
+Keyboard shortcuts for common actions,editing,must,yes,yes,"? sheet, ⌘K and / search, N add item, G then H/W/I/N go to, grips with Space and arrows"
 Main table view,views,must,yes,yes,
 Kanban view grouped by any status column with chosen card columns,views,must,yes,yes,dnd-kit lanes; add card per lane
 Calendar view day week month with drag to change date,views,must,yes,yes,"react-big-calendar (MIT), date and timeline columns"
