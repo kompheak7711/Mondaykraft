@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { supabaseKey, supabaseUrl } from "@/lib/supabase/env";
 import { friendlyError } from "@/lib/supabase/errors";
 import { enqueue, isNetworkError } from "@/lib/offline";
 import { moduleFor } from "@/lib/columns";
@@ -237,15 +238,29 @@ export function useBoardMutations(boardId: string) {
       },
 
       /** Insert the asset row first (RLS), then upload to the path the row fixed. */
-      async uploadFiles(item: Item, column: Column | null, updateId: string | null, files: File[]): Promise<AssetInfo[]> {
+      async uploadFiles(item: Item, column: Column | null, updateId: string | null, files: File[], onProgress?: (file: File, fraction: number) => void): Promise<AssetInfo[]> {
         const s = snap();
         if (!s) return [];
         const out: AssetInfo[] = [];
+        const { data: { session } } = await supabase.auth.getSession();
+        // XMLHttpRequest instead of the storage client: it is the only way to get upload progress events.
+        const put = (path: string, file: File, mime: string) => new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", `${supabaseUrl}/storage/v1/object/assets/${path.split("/").map(encodeURIComponent).join("/")}`);
+          xhr.setRequestHeader("Authorization", `Bearer ${session?.access_token ?? ""}`);
+          xhr.setRequestHeader("apikey", supabaseKey);
+          xhr.setRequestHeader("Content-Type", mime);
+          xhr.setRequestHeader("x-upsert", "false");
+          xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(file, e.loaded / e.total); };
+          xhr.onload = () => (xhr.status < 300 ? resolve() : reject(new Error(xhr.status === 413 ? "The file is too large." : `The upload failed (${xhr.status}).`)));
+          xhr.onerror = () => reject(new Error("The upload failed. Check your connection and retry."));
+          xhr.send(file);
+        });
         for (const file of files) {
           if (file.size > 25 * 1024 * 1024) { toast.error(`${file.name} is over 25 MB.`); continue; }
           const { data: asset, error } = await supabase.from("assets").insert({ item_id: item.id, column_id: column?.id ?? null, update_id: updateId, name: file.name, size: file.size, mime: file.type || "application/octet-stream", uploaded_by: s.userId, workspace_id: s.board.workspace_id, board_id: boardId, storage_path: "pending" }).select("id, name, mime, size, storage_path").single();
           if (error || !asset) { toast.error(friendlyError(error)); continue; }
-          const { error: upErr } = await supabase.storage.from("assets").upload(asset.storage_path, file, { contentType: asset.mime, upsert: false });
+          const upErr = await put(asset.storage_path, file, asset.mime).then(() => null, (e: Error) => e);
           if (upErr) { toast.error(`Could not upload ${file.name}. ${upErr.message}`); await supabase.from("assets").update({ deleted_at: new Date().toISOString() }).eq("id", asset.id); continue; }
           const info = { id: asset.id, name: asset.name, mime: asset.mime, size: asset.size };
           out.push(info);

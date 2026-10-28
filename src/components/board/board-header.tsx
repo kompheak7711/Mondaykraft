@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, History, MoreHorizontal, Pencil, Shield, Trash2, Zap } from "lucide-react";
+import { Archive, History, MoreHorizontal, Pencil, Shield, Trash2, Users, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -64,7 +64,8 @@ export function BoardHeader({ snapshot: s, mutations, presence }: { snapshot: Bo
             <TooltipContent>{presence.length === 1 ? "Only you are here" : `${presence.length} people viewing: ${presence.map((p) => p.name).join(", ")}`}</TooltipContent>
           </Tooltip>
         ) : null}
-        <Button asChild variant="ghost" size="sm"><Link href={`/boards/${s.board.id}?panel=activity`}><History className="size-4" /> <span className="hidden sm:inline">Activity</span></Link></Button>
+        <Button asChild variant="ghost" size="sm"><Link href={`/boards/${s.board.id}?panel=members`} aria-label="Members"><Users className="size-4" /> <span className="hidden sm:inline">Members</span></Link></Button>
+        <Button asChild variant="ghost" size="sm"><Link href={`/boards/${s.board.id}?panel=activity`} aria-label="Activity"><History className="size-4" /> <span className="hidden sm:inline">Activity</span></Link></Button>
         <Button asChild variant="ghost" size="sm"><Link href={`/boards/${s.board.id}/automations`}><Zap className="size-4" /> <span className="hidden sm:inline">Automate</span></Link></Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild><IconButton aria-label="Board options"><MoreHorizontal /></IconButton></DropdownMenuTrigger>

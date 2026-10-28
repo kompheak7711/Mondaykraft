@@ -16,6 +16,7 @@ import { ViewsBar } from "./views-bar";
 import { Toolbar, type ToolbarState } from "./toolbar";
 import { TableView } from "./table-view";
 import { ColumnSettingsDialog } from "./column-settings-dialog";
+import { BoardPanels } from "./board-panels";
 import { ItemPanel } from "@/components/item/item-panel";
 import { KanbanView } from "@/components/views/kanban-view";
 import { CalendarView } from "@/components/views/calendar-view";
@@ -47,7 +48,7 @@ export function BoardScreen({ boardId, itemId }: { boardId: string; itemId?: str
     onDeleteLabel: (c, id, moveTo) => mutations.deleteLabel(c, id, moveTo),
     countLabelUse: (c, id) => Object.values(index).filter((cells) => cells[c.id]?.label_id === id).length,
     onCreateTag: (name) => mutations.createTag(name),
-    onUpload: (item, column, files) => mutations.uploadFiles(item, column, null, files),
+    onUpload: (item, column, files, onProgress) => mutations.uploadFiles(item, column, null, files, onProgress),
     assetUrl: (a) => `/api/assets/${a.id}`,
   }) : null), [s, index, mutations]);
 
@@ -88,6 +89,7 @@ export function BoardScreen({ boardId, itemId }: { boardId: string; itemId?: str
           : <TableView snapshot={s} index={index} ctx={ctx} mutations={mutations} view={activeView} toolbar={toolbar} flashes={flashes} />}
       </div>
       <ColumnSettingsDialog column={settingsColumn} onClose={() => setSettingsColumn(null)} snapshot={s} ctx={ctx} mutations={mutations} />
+      <BoardPanels panel={params.get("panel")} snapshot={s} ctx={ctx} onClose={() => { const next = new URLSearchParams(params.toString()); next.delete("panel"); router.replace(`${pathname}${next.size ? `?${next}` : ""}`); }} />
       {itemId ? (
         <ItemPanel itemId={itemId} snapshot={s} index={index} ctx={ctx} mutations={mutations} flashes={flashes}
           onClose={() => router.push(`/boards/${boardId}${params.get("view") ? `?view=${params.get("view")}` : ""}`)} />

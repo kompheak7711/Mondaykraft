@@ -17,7 +17,7 @@ Duplicate a board structure only or with items or with items and updates,boards,
 Archive and restore a board,boards,must,yes,yes,archive done; restore needs the trash screen
 Delete a board to Trash and restore within 30 days,boards,must,yes,yes,purge job in the backend step
 Main vs private board type,boards,should,yes,yes,private visible only to invited members
-Board members with owner crown,boards,must,yes,partial,roles in DB; members panel pending
+Board members with owner crown,boards,must,yes,yes,Members panel: owners add people from the workspace and set owner/member/viewer; crowns on owners
 Board permission sets edit everything only edit content only edit assigned items view and comment,permissions,must,yes,yes,owner menu; enforced by RLS and in the UI
 Owner member viewer roles per board,permissions,must,yes,yes,via board_access
 Non-member cannot read a board,permissions,must,yes,yes,RLS; smoke-tested
@@ -51,7 +51,7 @@ Priority column,columns,must,yes,yes,status-like with a fixed starter label set
 Tags column workspace-wide tags,columns,must,yes,yes,
 Checkbox column,columns,must,yes,yes,
 Link column url and display text,columns,must,yes,yes,
-Files column with upload progress and retry,columns,must,yes,partial,upload and list; progress ring and retry pending
+Files column with upload progress and retry,columns,must,yes,yes,progress ring per file; failed files stay listed with Retry
 Progress column rolling up status columns,columns,must,yes,yes,
 Last updated column,columns,must,yes,yes,derived
 Creation log column,columns,must,yes,yes,derived
@@ -79,7 +79,7 @@ Pin an update to the top,item panel,should,yes,yes,
 Edit and delete own updates,item panel,must,yes,yes,owners can remove any
 Files tab listing all files on the item,item panel,must,yes,yes,
 Activity log per item who what old to new when,item panel,must,yes,yes,refreshes every 15 s while open
-Board activity log,boards,should,yes,no,
+Board activity log,boards,should,yes,yes,Activity panel from the board header: last 200 changes with the item named
 Checklists inside updates,item panel,could,yes,no,
 GIF picker in updates,item panel,could,yes,no,external service; skip unless free and keyless
 Real-time cell and structure changes for everyone on the board,realtime,must,yes,yes,broadcast from database

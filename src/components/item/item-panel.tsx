@@ -9,7 +9,6 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PersonAvatar } from "@/components/ui/avatar-stack";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { moduleFor } from "@/lib/columns";
 import type { BoardContext, Item } from "@/lib/columns/types";
@@ -17,6 +16,7 @@ import { canEditItem, cellsOf, cellText, type CellIndex } from "@/lib/board/mode
 import { cellKey, type BoardSnapshot } from "@/lib/board/types";
 import type { BoardMutations } from "@/lib/board/mutations";
 import { formatRelative } from "@/lib/format";
+import { ActivityList } from "@/components/board/activity-list";
 import { useActivities, useItemAssets } from "@/lib/item/queries";
 import { CellFrame } from "@/components/board/cell";
 import { Updates } from "./updates";
@@ -132,30 +132,7 @@ function PanelBody({ item, s, index, ctx, mutations, onClose, flashes }: { item:
           </TabsContent>
           <TabsContent value="activity" className="pt-3">
             {activities.isPending ? <Skeleton className="h-16 w-full" /> : null}
-            {activities.data && activities.data.length === 0 ? <p className="text-sm text-text-muted">Nothing has happened to this item yet.</p> : null}
-            <ol className="space-y-2">
-              {activities.data?.map((a) => {
-                const who = s.members.find((m) => m.id === a.actor_id);
-                const col = s.columns.find((c) => c.id === a.column_id);
-                const txt = (v: unknown) => (col && v && typeof v === "object" ? moduleFor(col.type).toText(v as Record<string, unknown>, col, ctx) : typeof v === "string" ? v : v == null ? "" : JSON.stringify(v));
-                const what =
-                  a.kind === "cell_changed" ? `${col?.title ?? "a cell"}: ${txt(a.old_value) || "empty"} → ${txt(a.new_value) || "empty"}` :
-                  a.kind === "cell_cleared" ? `cleared ${col?.title ?? "a cell"} (was ${txt(a.old_value)})` :
-                  a.kind === "item_created" ? "created this item" :
-                  a.kind === "item_renamed" ? `renamed “${txt(a.old_value)}” to “${txt(a.new_value)}”` :
-                  a.kind === "item_moved" ? `moved it to ${s.groups.find((g) => g.id === a.new_value)?.title ?? "another group"}` :
-                  a.kind.replace(/_/g, " ");
-                return (
-                  <li key={a.id} className="flex items-start gap-2 text-sm">
-                    {who ? <PersonAvatar person={who} size={24} /> : <span className="flex size-6 items-center justify-center rounded-pill bg-surface-2 text-[10px]" aria-hidden>⚡</span>}
-                    <div className="min-w-0 flex-1">
-                      <span className="font-medium">{who?.name ?? (a.automation_id ? "An automation" : "Someone")}</span> <span className="text-text">{what}</span>
-                      <div className="text-xs text-text-muted" title={new Date(a.created_at).toLocaleString()}>{formatRelative(a.created_at)}</div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
+            {activities.data ? <ActivityList rows={activities.data} snapshot={s} ctx={ctx} empty="Nothing has happened to this item yet." /> : null}
           </TabsContent>
         </Tabs>
       </div>

@@ -29,18 +29,25 @@ function FilesCell({ column, item, value, canEdit, onChange, variant, board }: C
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const upload = async (files: FileList | null) => {
-    if (!files?.length || !board.onUpload) return;
+  const [progress, setProgress] = useState<Record<string, number>>({});
+  const [failed, setFailed] = useState<File[]>([]);
+  const upload = async (files: FileList | File[] | null) => {
+    const list = files ? Array.from(files) : [];
+    if (!list.length || !board.onUpload) return;
     setBusy(true);
     setError(null);
+    setFailed((f) => f.filter((x) => !list.some((l) => l.name === x.name)));
     try {
-      const added = await board.onUpload(item, column, Array.from(files));
-      const next = [...idsOf(value), ...added.map((a) => a.id)];
-      if (next.length) onChange({ ids: next });
+      const added = await board.onUpload(item, column, list, (f, p) => setProgress((prev) => ({ ...prev, [f.name]: p })));
+      const ok = new Set(added.map((a) => a.name));
+      setFailed((f) => [...f, ...list.filter((l) => !ok.has(l.name))]);
+      if (added.length) onChange({ ids: [...idsOf(value), ...added.map((a) => a.id)] });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed. Try again.");
+      setFailed((f) => [...f, ...list]);
     } finally {
       setBusy(false);
+      setProgress({});
       if (inputRef.current) inputRef.current.value = "";
     }
   };
@@ -61,7 +68,13 @@ function FilesCell({ column, item, value, canEdit, onChange, variant, board }: C
                 <IconButton aria-label={`Remove ${a.name}`} size="sm" onClick={() => remove(a.id)}><X /></IconButton>
               </li>
             ))}
-            {assets.length === 0 ? <li className="px-1 py-2 text-sm text-text-muted">No files yet. Drop files here or upload.</li> : null}
+            {Object.entries(progress).map(([name, p]) => (
+              <li key={name} className="flex items-center gap-2 px-1 py-0.5 text-sm"><Ring value={p} /><span className="min-w-0 flex-1 truncate">{name}</span><span className="text-xs text-text-muted tabular-nums">{Math.round(p * 100)}%</span></li>
+            ))}
+            {failed.map((f) => (
+              <li key={f.name} className="flex items-center gap-2 px-1 py-0.5 text-sm"><span className="min-w-0 flex-1 truncate text-danger">{f.name} did not upload</span><Button variant="outline" size="xs" onClick={() => upload([f])}>Retry</Button></li>
+            ))}
+            {assets.length === 0 && !failed.length && !Object.keys(progress).length ? <li className="px-1 py-2 text-sm text-text-muted">No files yet. Drop files here or upload.</li> : null}
           </ul>
           {error ? <p role="alert" className="text-xs text-danger">{error}</p> : null}
           <input ref={inputRef} type="file" multiple className="sr-only" aria-label="Upload files" onChange={(e) => upload(e.target.files)} />
@@ -80,6 +93,18 @@ function FilesCell({ column, item, value, canEdit, onChange, variant, board }: C
         <Muted>{variant === "field" ? "Attach files" : <Paperclip className="size-4" aria-hidden />}</Muted>
       )}
     </CellButton>
+  );
+}
+
+/** Upload progress as a ring, read out as a percentage. */
+function Ring({ value }: { value: number }) {
+  const r = 7;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg role="progressbar" aria-label="Uploading" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value * 100)} width="18" height="18" viewBox="0 0 18 18" className="shrink-0 -rotate-90">
+      <circle cx="9" cy="9" r={r} fill="none" strokeWidth="2.5" className="stroke-border" />
+      <circle cx="9" cy="9" r={r} fill="none" strokeWidth="2.5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - value)} className="stroke-brand" />
+    </svg>
   );
 }
 

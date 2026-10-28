@@ -31,3 +31,6 @@ Only reproduced defects. Severity: S1 data loss or security, S2 feature broken, 
 
 ## B-006 · S3 · fixed · Moving a column only showed after a reload
 - Steps: Project tracker, Owner column menu, Move right. Expected: the header order changes at once. Actual: nothing moved until the page reloaded; the database had the new positions. Cause: `visibleColumns` returned columns in load order and never re-sorted by position after the optimistic patch or the realtime row. Fix: sort by position in `src/lib/board/model.ts`. Found while writing the drag cases (e2e/drag.spec.ts).
+
+## B-007 · S2 · fixed · File uploads were always refused by storage
+- Steps: any board, Files column, Upload, pick a file. Expected: the file appears in the cell. Actual: "Could not upload" and the file never reached storage (`storage.objects` had 0 rows). Cause: in the three storage policies the unqualified `name` inside `exists (select 1 from assets a where a.storage_path = name ...)` resolved to `assets.name`, the file name, so the path never matched. Fix: migration `20261028040000_storage_policies.sql` compares against `objects.name`. Found by the new upload case in e2e/members.spec.ts; the earlier manual check only saw the asset row, not the object.

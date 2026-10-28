@@ -58,7 +58,8 @@ export type BoardContext = {
   assetUrl?: (asset: AssetInfo) => string | undefined;
   onDeleteLabel?: (column: Column, labelId: string, moveTo: string | null) => Promise<void>;
   countLabelUse?: (column: Column, labelId: string) => number;
-  onUpload?: (item: Item, column: Column, files: File[]) => Promise<AssetInfo[]>;
+  /** Uploads and returns the assets that made it; files missing from the result failed. */
+  onUpload?: (item: Item, column: Column, files: File[], onProgress?: (file: File, fraction: number) => void) => Promise<AssetInfo[]>;
 };
 
 export type CellProps = {
