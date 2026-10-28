@@ -19,9 +19,11 @@ test.describe("F02 F03 F06 F07 F08 the board", () => {
   });
 
   test("F03-N1 the server rejects a bad number and the cell rolls back", async ({ page }) => {
-    await page.getByRole("button", { name: "Add column" }).first().click();
-    await page.getByRole("button", { name: /^Numbers\s*Amounts/ }).click();
-    const cell = page.getByRole("row").filter({ hasText: "Write the project brief" }).getByRole("button", { name: /^Numbers:/ });
+    if (!(await page.getByRole("columnheader").filter({ has: page.getByRole("button", { name: "Numbers", exact: true }) }).count())) {
+      await page.getByRole("button", { name: "Add column" }).first().click();
+      await page.getByRole("button", { name: /^Numbers\s*Amounts/ }).click();
+    }
+    const cell = page.getByRole("row").filter({ hasText: "Write the project brief" }).getByRole("button", { name: /^Numbers:/ }).first();
     await cell.click();
     await page.keyboard.type("twelve");
     await page.keyboard.press("Enter");

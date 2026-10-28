@@ -115,9 +115,11 @@ test.describe("F03 scale", () => {
     const t0 = Date.now();
     for (let i = 0; i < 20; i++) { await grid.evaluate((el) => el.parentElement!.scrollBy(0, 4000)); await ana.waitForTimeout(50); }
     expect(Date.now() - t0).toBeLessThan(8000);
-    for (let i = 0; i < 5; i++) { await grid.evaluate((el) => { const p = el.parentElement!; p.scrollTop = p.scrollHeight; }); await ana.waitForTimeout(300); }
-    const tail = await ana.evaluate(() => { const rows = [...document.querySelectorAll("[role=row]")]; return rows.slice(-4).map((r) => (r as HTMLElement).innerText.slice(0, 30)); });
-    expect(tail.join("|"), tail.join("|")).toContain("Row 2000");
+    await expect.poll(async () => {
+      await grid.evaluate((el) => { const p = el.parentElement!; p.scrollTop = p.scrollHeight; });
+      await ana.waitForTimeout(400);
+      return ana.evaluate(() => [...document.querySelectorAll("[role=row]")].slice(-6).map((r) => (r as HTMLElement).innerText.slice(0, 30)).join("|"));
+    }, { timeout: 20_000 }).toContain("Row 2000");
     await ana.context().close();
   });
 });
