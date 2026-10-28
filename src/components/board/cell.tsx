@@ -36,7 +36,8 @@ export const CellFrame = memo(function CellFrame({ item, column, value, text, ce
       data-cell={row !== undefined ? `${row},${col}` : undefined}
       role={variant === "cell" ? "gridcell" : undefined}
       style={style}
-      onFocusCapture={() => editable && beginEdit(key)}
+      // Only typing holds the lock. A focused trigger button (where focus lands after a picker closes) must not block remote changes.
+      onFocusCapture={(e) => { if (editable && (e.target as HTMLElement).matches("input, textarea, [contenteditable=true]")) beginEdit(key); }}
       onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) endEdit(key); }}
       onKeyDownCapture={(e) => {
         // Enter and Escape unmount inline inputs without a blur event; release the cell once focus has left it.

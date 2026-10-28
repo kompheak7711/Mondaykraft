@@ -5,15 +5,15 @@ export const DEMO = { email: "demo.ana@example.com", password: "taskraft-demo-1"
 
 /** Every test fails on a console error or a 5xx response, and can run an axe scan. */
 export const test = base.extend<{ page: Page; axe: () => Promise<void> }>({
-  page: async ({ page }, use) => {
+  page: async ({ page }, provide) => {
     const errors: string[] = [];
     page.on("console", (m) => { if (m.type() === "error" && !/favicon|hydration|third-party|Download the React DevTools/i.test(m.text())) errors.push(m.text()); });
     page.on("response", (r) => { if (r.status() >= 500) errors.push(`${r.status()} ${r.url()}`); });
-    await use(page);
+    await provide(page);
     expect(errors, "console errors or 5xx responses").toEqual([]);
   },
-  axe: async ({ page }, use) => {
-    await use(async () => {
+  axe: async ({ page }, provide) => {
+    await provide(async () => {
       const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).disableRules(["color-contrast"]).analyze();
       const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
       expect(serious.map((v) => `${v.id}: ${v.nodes.length} nodes (${v.nodes[0]?.target.join(" ")})`), "axe serious/critical violations").toEqual([]);

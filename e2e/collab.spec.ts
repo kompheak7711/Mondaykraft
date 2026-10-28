@@ -15,7 +15,6 @@ async function userPage(browser: Browser, who: { email: string; password: string
 
 test.describe("F03 realtime and permissions", () => {
   test("two browsers see each other's edits live", async ({ browser }) => {
-    test.fixme(true, "B-004: fails in the suite, passes by hand; see replica/bugs.md");
     const ana = await userPage(browser, DEMO);
     const ben = await userPage(browser, BEN);
     await openDemoBoard(ana);
@@ -91,7 +90,6 @@ test.describe("F03 realtime and permissions", () => {
 
 test.describe("F03 scale", () => {
   test("a 2,000-item board stays virtualised and scrolls to the end", async ({ browser }) => {
-    test.fixme(true, "passes alone, fails inside the full suite; see replica/bugs.md to-check list");
     const db = new Client({ connectionString: process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres" });
     await db.connect();
     const ws = (await db.query(`select id from workspaces where name = 'Taskraft demo'`)).rows[0]?.id;

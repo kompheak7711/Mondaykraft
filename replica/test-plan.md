@@ -36,4 +36,4 @@ Edge cases still open (to check, not yet reproduced as bugs): two tabs editing t
 
 Run: `pnpm seed` once, then `pnpm exec playwright test`.
 
-Round two additions (e2e/collab.spec.ts, tests/*.test.ts): two-browser live edits (fixme, B-004), held cell while typing (pass), viewer locked (pass), non-member private board (pass), 2,000-item board (fixme in suite, passes alone); Vitest: 12 unit and database tests (pass).
+Round two additions (e2e/collab.spec.ts, tests/*.test.ts): two-browser live edits (pass, B-004 fixed), held cell while typing (pass), viewer locked (pass), non-member private board (pass), 2,000-item board (pass); Vitest: 12 unit and database tests (pass).

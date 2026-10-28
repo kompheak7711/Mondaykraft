@@ -4,7 +4,7 @@ import { columnModules } from "@/lib/columns";
 import { progressOf } from "@/lib/columns/progress";
 import type { BoardContext, Column } from "@/lib/columns/types";
 
-const col = (type: Column["type"], settings: Record<string, unknown> = {}, id = type): Column => ({ id, board_id: "b", scope: "item", title: type, type, settings, width: 140, position: 1, description: null });
+const col = (type: Column["type"], settings: Record<string, unknown> = {}, id: string = type): Column => ({ id, board_id: "b", scope: "item", title: type, type, settings, width: 140, position: 1, description: null });
 const ctx: BoardContext = { boardId: "b", workspaceId: "w", members: [{ id: "u1", name: "Ana" }, { id: "u2", name: "Ben" }], tags: [{ id: "t1", name: "urgent", color: "red" }], assets: {}, timezone: "UTC", statusColumns: [] };
 const status = col("status", { labels: [{ id: "todo", label: "Not started", color: "gray" }, { id: "done", label: "Done", color: "green", is_done: true }] });
 

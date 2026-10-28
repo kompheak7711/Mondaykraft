@@ -190,7 +190,7 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
               return (
                 <div key={c.id} role="gridcell" className="flex shrink-0 items-center overflow-hidden border-r border-b border-border px-2" style={{ width: c.width }} title={sum.battery ? sum.battery.map((b) => `${b.label}: ${b.count}`).join(", ") : undefined}>
                   {sum.text ? <span className="truncate tabular-nums"><span className="mr-1 text-text-muted/70">{footerFns[ci]}</span>{sum.text}</span> : null}
-                  {sum.battery ? <span className="flex h-4 w-full overflow-hidden rounded-sm" role="img" aria-label={sum.battery.map((b) => `${b.label} ${b.count}`).join(", ")}>{sum.battery.map((b) => <span key={b.label} className={labelBg[b.color as keyof typeof labelBg] ?? labelBg.gray} style={{ flex: b.count }} />)}</span> : null}
+                  {sum.battery?.length ? <span className="flex h-4 w-full overflow-hidden rounded-sm" role="img" aria-label={sum.battery.map((b) => `${b.label} ${b.count}`).join(", ")}>{sum.battery.map((b) => <span key={b.label} className={labelBg[b.color as keyof typeof labelBg] ?? labelBg.gray} style={{ flex: b.count }} />)}</span> : null}
                 </div>
               );
             })}
