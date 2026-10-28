@@ -12,7 +12,7 @@ import { settingsOf, type BoardSnapshot, type ViewRow } from "@/lib/board/types"
 import type { BoardMutations } from "@/lib/board/mutations";
 import { ViewControls } from "./view-controls";
 
-/** Search and the person filter are per session; filter, sort, hide and group-by live on the view. */
+/** Search and the person filter: saved on the view for people who can edit it, per session otherwise. Filter, sort, hide and group-by always live on the view. */
 export type ToolbarState = { search: string; persons: string[] };
 
 export function Toolbar({ snapshot: s, mutations, view, state, onState }: { snapshot: BoardSnapshot; mutations: BoardMutations; view: ViewRow | undefined; state: ToolbarState; onState: (st: ToolbarState) => void }) {

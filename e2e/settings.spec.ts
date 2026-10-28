@@ -32,3 +32,20 @@ test.describe("F14 settings and shortcuts", () => {
     await expect(page.getByRole("navigation", { name: "Workspace" }).getByText(original, { exact: true })).toBeVisible();
   });
 });
+
+test.describe("F14 profile photo", () => {
+  test("uploads a photo, sees it, removes it", async ({ page, axe }) => {
+    await login(page);
+    await page.goto("/settings");
+    const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
+    await page.getByLabel("Photo").setInputFiles({ name: "me.png", mimeType: "image/png", buffer: png });
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Saved." })).toBeVisible();
+    await expect(page.locator('img[src*="/avatars/"]').first()).toBeVisible();
+    await axe();
+    await page.getByLabel("Remove photo").check();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByLabel("Remove photo")).toHaveCount(0);
+    await expect(page.locator('img[src*="/avatars/"]')).toHaveCount(0);
+  });
+});

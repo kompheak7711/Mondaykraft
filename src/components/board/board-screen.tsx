@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Lock, SearchX } from "lucide-react";
 import { useBoard } from "@/lib/board/use-board";
 import { useBoardRealtime } from "@/lib/board/realtime";
 import { useBoardMutations } from "@/lib/board/mutations";
 import { BoardAccessError } from "@/lib/board/load";
+import { settingsOf, type ViewRow } from "@/lib/board/types";
 import { buildIndex, makeBoardContext } from "@/lib/board/model";
 import type { Column } from "@/lib/columns/types";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -32,7 +33,9 @@ export function BoardScreen({ boardId, itemId }: { boardId: string; itemId?: str
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [toolbar, setToolbar] = useState<ToolbarState>({ search: "", persons: [] });
+  // Search and the person filter start from the view and, for people who can edit it, save back after a short pause.
+  const [tb, setTb] = useState<{ viewId?: string; state: ToolbarState }>({ state: { search: "", persons: [] } });
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [settingsColumn, setSettingsColumn] = useState<Column | null>(null);
 
   const index = useMemo(() => (s ? buildIndex(s) : {}), [s]);
@@ -41,6 +44,18 @@ export function BoardScreen({ boardId, itemId }: { boardId: string; itemId?: str
     const wanted = params.get("view");
     return s.views.find((v) => v.id === wanted) ?? s.views.find((v) => v.is_default) ?? s.views[0];
   }, [s, params]);
+
+  const fromView = (v: ViewRow | undefined): ToolbarState => { const st = settingsOf(v); return { search: st.search ?? "", persons: st.person_filter ?? [] }; };
+  const toolbar = tb.viewId === activeView?.id ? tb.state : fromView(activeView);
+  const setToolbar = (st: ToolbarState) => {
+    setTb({ viewId: activeView?.id, state: st });
+    if (!activeView || !s?.access.can_edit_structure) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      const v = s.views.find((x) => x.id === activeView.id) ?? activeView;
+      void mutations.updateView(v, { settings: { ...settingsOf(v), search: st.search || undefined, person_filter: st.persons.length ? st.persons : undefined } as never });
+    }, 600);
+  };
 
   const ctx = useMemo(() => (s ? makeBoardContext(s, {
     onOpenColumnSettings: (c) => setSettingsColumn(c),

@@ -37,3 +37,9 @@ Only reproduced defects. Severity: S1 data loss or security, S2 feature broken, 
 
 ## Status after round two (2026-10-28)
 Open: none at S1 or S2; none at S3 or S4. Fixed this round: B-004 (S2), B-005 (S3), B-006 (S3), B-007 (S2). Suite: 33 Playwright cases and 12 Vitest tests pass; schema check passes.
+
+## B-008 · S2 · fixed · Duplicating a group fired the board's automations on the copies
+- Steps: Project tracker, Done group options, Duplicate group. Expected: "Done (copy)" with the same two items. Actual: "Done (copy)" had 0 items and Done had 4: copying the cells of a Done item raised `status_changed`, and the seeded "Done moves to the Done group" automation moved every copy back into the original group. Cause: `app.run_automations` had no notion of a copy in progress. Fix (same commit as the feature): `duplicate_group` runs with `app.silent = '1'` and `app.run_automations` returns at once while that flag is set, so copies keep their cells and raise no notifications. Found by F02-H2 in e2e/board.spec.ts on its first run. Note: the bulk bar's Duplicate (`bulk_items`) still fires automations on its copies; left as is because a copied item landing where its status says it belongs is defensible there, and nobody has reported it.
+
+## Status after round three (2026-10-28)
+Open: none at S1 or S2; none at S3 or S4. Fixed this round: B-008 (S2). Suite: 40 Playwright cases and 13 Vitest tests pass; schema check passes.

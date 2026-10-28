@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { DndContext, DragOverlay, KeyboardSensor, PointerSensor, closestCenter, useDraggable, useDroppable, useSensor, useSensors, type CollisionDetection, type DragEndEvent, type DragOverEvent } from "@dnd-kit/core";
-import { Archive, ChevronDown, ChevronRight, Copy, FolderInput, GripVertical, MessageSquare, MoreHorizontal, Plus, Trash2, X } from "lucide-react";
+import { Archive, ChevronDown, ChevronRight, Copy, Download, FolderInput, GripVertical, MessageSquare, MoreHorizontal, Plus, Trash2, X } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LABEL_COLORS, labelBg } from "@/components/ui/status-chip";
-import type { BoardContext, Item } from "@/lib/columns/types";
+import type { BoardContext, Column, Item } from "@/lib/columns/types";
+import { downloadText, toCsv } from "@/lib/csv";
 import { applyView, canEditItem, cellsOf, cellText, subitemsOf, summarize, visibleColumns, type CellIndex, type Section } from "@/lib/board/model";
 import { cellKey, settingsOf, type BoardSnapshot, type GroupRow, type ViewRow } from "@/lib/board/types";
 import type { BoardMutations } from "@/lib/board/mutations";
@@ -122,17 +123,25 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
   const totalWidth = LEFT_W + NAME_W + cols.reduce((w, c) => w + c.width, 0) + TAIL_W;
   const viewParam = params.get("view") ? `?view=${params.get("view")}` : "";
 
-  // Keyboard: arrows move between cells; rows outside the viewport are scrolled in first.
+  // Keyboard: arrows move between cells; Tab and Shift+Tab walk the row and wrap to the next or previous row
+  // (Tab from an open editor commits it on blur). Past the last cell, Tab leaves the grid. Rows outside the viewport are scrolled in first.
   const onKeyDown = (e: React.KeyboardEvent) => {
-    const map: Record<string, [number, number]> = { ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0] };
+    const map: Record<string, [number, number]> = { ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0], Tab: [0, e.shiftKey ? -1 : 1] };
     const d = map[e.key];
     const target = (e.target as HTMLElement).closest<HTMLElement>("[data-cell]");
-    if (!d || !target || (e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
-    e.preventDefault();
+    const typing = (e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA";
+    if (!d || !target || (typing && e.key !== "Tab")) return;
     const [r, c] = target.dataset.cell!.split(",").map(Number);
-    let r2 = r + d[0];
-    const c2 = Math.max(0, c + d[1]);
-    while (r2 >= 0 && r2 < rows.length && d[0] !== 0 && rows[r2].kind !== "item" && rows[r2].kind !== "subitem") r2 += d[0];
+    const width = (i: number) => (rows[i]?.kind === "subitem" ? subCols : cols).length;
+    const nextRow = (i: number, dir: number) => { let j = i + dir; while (j >= 0 && j < rows.length && rows[j].kind !== "item" && rows[j].kind !== "subitem") j += dir; return j; };
+    let r2 = d[0] ? nextRow(r, d[0]) : r;
+    let c2 = c + d[1];
+    if (e.key === "Tab") {
+      if (c2 >= width(r)) { r2 = nextRow(r, 1); c2 = 0; } else if (c2 < 0) { r2 = nextRow(r, -1); c2 = width(r2) - 1; }
+      if (r2 < 0 || r2 >= rows.length) return;
+    }
+    c2 = Math.max(0, c2);
+    e.preventDefault();
     if (r2 < 0 || r2 >= rows.length) return;
     const focusCell = () => {
       const el = scrollRef.current?.querySelector<HTMLElement>(`[data-cell="${r2},${c2}"]`);
@@ -321,7 +330,7 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
           </div>
         </div>
       </div>
-      {selected.size > 0 ? <BulkBar count={selected.size} ids={Array.from(selected)} snapshot={s} mutations={mutations} onClear={() => setSelected(new Set())} /> : null}
+      {selected.size > 0 ? <BulkBar count={selected.size} ids={Array.from(selected)} snapshot={s} cols={cols} mutations={mutations} onClear={() => setSelected(new Set())} /> : null}
     </div>
     <DragOverlay>{drag ? <div className="w-max max-w-xs truncate rounded-md border border-border bg-bg px-2 py-1 text-sm shadow-pop">{drag}</div> : null}</DragOverlay>
     </DndContext>
@@ -409,6 +418,7 @@ function SectionRow({ index, section, collapsed, onToggle, canStructure, mutatio
             <DropdownMenuTrigger asChild><IconButton aria-label={`${group.title} group options`} size="sm"><MoreHorizontal /></IconButton></DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem onSelect={() => setRenaming(true)}>Rename group</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => mutations.duplicateGroup(group)}><Copy className="size-4" /> Duplicate group</DropdownMenuItem>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>Change colour</DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
@@ -432,11 +442,17 @@ function SectionRow({ index, section, collapsed, onToggle, canStructure, mutatio
   );
 }
 
-function BulkBar({ count, ids, snapshot: s, mutations, onClear }: { count: number; ids: string[]; snapshot: BoardSnapshot; mutations: BoardMutations; onClear: () => void }) {
+function BulkBar({ count, ids, snapshot: s, cols, mutations, onClear }: { count: number; ids: string[]; snapshot: BoardSnapshot; cols: Column[]; mutations: BoardMutations; onClear: () => void }) {
   const groups = s.groups.slice().sort((a, b) => a.position - b.position);
-  const items = s.items.filter((i) => ids.includes(i.id));
+  const order = new Map(groups.map((g, i) => [g.id, i]));
+  const items = s.items.filter((i) => ids.includes(i.id)).sort((a, b) => (order.get(a.group_id ?? "") ?? 0) - (order.get(b.group_id ?? "") ?? 0) || a.position - b.position);
   const sameGroup = new Set(items.map((i) => i.group_id)).size === 1;
   const act = async (fn: () => Promise<unknown>) => { await fn(); onClear(); };
+  // CSV of the selected rows with the view's visible columns, as the cells read on screen.
+  const exportCsv = () => {
+    downloadText(`${s.board.name}.csv`, toCsv([["Item", "Group", ...cols.map((c) => c.title)], ...items.map((i) => [i.name, groups.find((g) => g.id === i.group_id)?.title ?? "", ...cols.map((c) => cellText(s, i.id, c.id))])]));
+    onClear();
+  };
   return (
     <div role="toolbar" aria-label={`${count} ${count === 1 ? "item" : "items"} selected`} className="fixed bottom-4 left-1/2 z-40 flex max-w-[95vw] -translate-x-1/2 items-center gap-1 rounded-lg bg-text px-2 py-1.5 text-bg shadow-float">
       <span className="px-2 text-sm font-medium">{count} selected</span>
@@ -448,6 +464,7 @@ function BulkBar({ count, ids, snapshot: s, mutations, onClear }: { count: numbe
           {groups.map((g: GroupRow) => <DropdownMenuItem key={g.id} onSelect={() => act(() => mutations.moveItems(ids, g.id, s.items.filter((i) => i.group_id === g.id && !i.parent_item_id && !ids.includes(i.id)).sort((a, b) => b.position - a.position)[0]?.id ?? null))}>{g.title}</DropdownMenuItem>)}
         </DropdownMenuContent>
       </DropdownMenu>
+      <Button variant="ghost" size="sm" className="text-bg hover:bg-bg/15 hover:text-bg" onClick={exportCsv}><Download /> Export CSV</Button>
       <Button variant="ghost" size="sm" className="text-bg hover:bg-bg/15 hover:text-bg" onClick={() => act(() => mutations.archiveItems(ids))}><Archive /> Archive</Button>
       <Button variant="ghost" size="sm" className="text-bg hover:bg-bg/15 hover:text-bg" onClick={() => act(() => mutations.deleteItems(ids))}><Trash2 /> Delete</Button>
       <IconButton aria-label="Clear selection" size="sm" className="text-bg hover:bg-bg/15 hover:text-bg" onClick={onClear}><X /></IconButton>

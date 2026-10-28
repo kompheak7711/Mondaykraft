@@ -11,7 +11,7 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const [{ data: profile }, { data: workspaces }] = await Promise.all([
-    supabase.from("profiles").select("name, email, title, timezone, notification_prefs").eq("id", user!.id).single(),
+    supabase.from("profiles").select("name, email, title, timezone, notification_prefs, avatar_url").eq("id", user!.id).single(),
     supabase.from("workspaces").select("id, name, timezone").is("deleted_at", null).order("created_at"),
   ]);
   const current = pickWorkspace((await cookies()).get(WORKSPACE_COOKIE)?.value, workspaces ?? []);
@@ -24,7 +24,7 @@ export default async function SettingsPage() {
         <h1 className="text-xl font-bold">Profile and settings</h1>
         <p className="text-sm text-text-muted">{profile?.email}</p>
       </div>
-      <SettingsForm profile={{ name: profile?.name ?? "", title: profile?.title ?? "", timezone: profile?.timezone ?? "UTC" }} zones={zones} muted={muted} workspace={current ? { ...current, role: membership?.role ?? "member" } : null} />
+      <SettingsForm profile={{ name: profile?.name ?? "", title: profile?.title ?? "", timezone: profile?.timezone ?? "UTC", avatarUrl: profile?.avatar_url ?? null }} zones={zones} muted={muted} workspace={current ? { ...current, role: membership?.role ?? "member" } : null} />
     </div>
   );
 }

@@ -30,7 +30,21 @@ export async function updateProfile(_prev: FormState, formData: FormData): Promi
   const title = String(formData.get("title") ?? "").trim() || null;
   const muted = formData.getAll("mute").map(String);
   if (!name) return { error: "Your name can't be empty." };
-  const { error } = await supabase.from("profiles").update({ name, timezone, title, notification_prefs: { muted } }).eq("id", user.id);
+  const patch: { name: string; timezone: string; title: string | null; notification_prefs: { muted: string[] }; avatar_url?: string | null } = { name, timezone, title, notification_prefs: { muted } };
+  // Photo: one object per person at avatars/{uid}/avatar (RLS keeps people in their own folder); the public URL is cache-busted on change.
+  const avatar = formData.get("avatar");
+  const path = `${user.id}/avatar`;
+  if (formData.get("removeAvatar")) {
+    await supabase.storage.from("avatars").remove([path]);
+    patch.avatar_url = null;
+  } else if (avatar instanceof File && avatar.size > 0) {
+    if (avatar.size > 2 * 1024 * 1024) return { error: "The photo is over 2 MB." };
+    if (!/^image\/(png|jpeg|webp|gif)$/.test(avatar.type)) return { error: "Use a PNG, JPEG, WebP or GIF." };
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, avatar, { upsert: true, contentType: avatar.type, cacheControl: "3600" });
+    if (upErr) return { error: "Could not upload the photo. Try again." };
+    patch.avatar_url = `${supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
+  }
+  const { error } = await supabase.from("profiles").update(patch).eq("id", user.id);
   if (error) return { error: "Could not save your profile. Try again." };
   revalidatePath("/", "layout");
   return { message: "Saved." };

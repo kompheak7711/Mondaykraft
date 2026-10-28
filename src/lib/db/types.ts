@@ -787,6 +787,9 @@ isOneToOne: false
 "duplicate_board":
 { Args: { "p_board": string,"p_mode"?: string }; Returns: string
                            },
+"duplicate_group":
+{ Args: { "p_group": string }; Returns: string
+                           },
 "move_rows":
 { Args: { "p_after"?: string,"p_container"?: string,"p_ids": (string)[],"p_table": string }; Returns: undefined
                            },

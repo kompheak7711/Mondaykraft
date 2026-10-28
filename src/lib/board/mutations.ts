@@ -158,6 +158,13 @@ export function useBoardMutations(boardId: string) {
         } } });
       },
 
+      /** Server-side copy of the group with its live items, cells and subitems; the snapshot reloads. */
+      async duplicateGroup(group: GroupRow) {
+        const id = await run(null, () => supabase.rpc("duplicate_group", { p_group: group.id }));
+        if (id) client.invalidateQueries({ queryKey: boardKey(boardId) });
+        return (id as string | null) ?? null;
+      },
+
       moveGroup(id: string, afterId: string | null) {
         return run((st) => {
           const others = st.groups.filter((g) => g.id !== id).sort((a, b) => a.position - b.position);
@@ -220,6 +227,16 @@ export function useBoardMutations(boardId: string) {
 
       deleteView(view: ViewRow) {
         return run((st) => ({ ...st, views: removeRow(st.views, view.id) }), () => supabase.from("views").update({ deleted_at: new Date().toISOString() }).eq("id", view.id).then((r) => ({ data: true, error: r.error })));
+      },
+
+      moveView(id: string, afterId: string | null) {
+        return run((st) => {
+          const others = st.views.filter((v) => v.id !== id).sort((a, b) => a.position - b.position);
+          const prev = afterId ? others.find((v) => v.id === afterId)?.position ?? 0 : (others[0]?.position ?? 1) - 1;
+          const nextRow = others.find((v) => v.position > prev);
+          const pos = nextRow ? (prev + nextRow.position) / 2 : prev + 1;
+          return { ...st, views: st.views.map((v) => (v.id === id ? { ...v, position: pos } : v)) };
+        }, () => supabase.rpc("move_rows", { p_table: "views", p_ids: [id], p_container: boardId, p_after: afterId ?? undefined }));
       },
 
       setDefaultView(view: ViewRow) {

@@ -109,3 +109,17 @@ Owner asked for: Vitest unit tests (column validation, `move_rows` ordering, aut
 - Storage policies recreated (migration `20261028040000_storage_policies.sql`): the unqualified `name` in the init policies pointed at `assets.name`, so no upload had ever succeeded (B-007). Uploads now go through `XMLHttpRequest` for progress events; failed files stay listed with Retry.
 - Workspace trash: owners only, never the last live workspace (there would be no page left to restore it from); restore lives on the Trash page. Purge does not touch workspaces yet.
 - Parity after this round: 90.3 / 100, must-haves 99 of 107, no open S1 or S2. Still "not shippable" by the skill's rule until the 8 partial must-haves close; see `replica/parity.md` for the list.
+
+## D-023 · 2026-10-28 · Round three outcome
+
+Owner asked for the seven partial must-haves except invite email, then `/replica-test`, `/replica-diff` and `/replica-entrepreneur`, under the D-015 gates. All seven are closed:
+
+- Views bar reorder uses dnd-kit's sortable preset on the tabs with a grip per tab (hidden until hover or focus), over the existing `move_rows` with `p_table = 'views'`.
+- Search and the person filter now live in the view's `settings` (`search`, `person_filter`), which the model already honoured. People who can edit the board's structure save them 600 ms after the last change; viewers keep them for the session. Each view remembers its own.
+- Stacked bars: `chart.type = 'stacked'` with `stack_column_id`; one series per value of the stack column (keys prefixed `s:` so they cannot collide with `name`, `value` or `fill`). With only one groupable column the chart falls back to plain bars and says why.
+- `duplicate_group(p_group)` copies live, unarchived items with their cells and subitems and places the copy right after the original. It sets `app.silent`, and `app.run_automations` now returns at once while that flag is set (B-008). `duplicate_board` inherits the same quiet; the bulk bar's Duplicate does not set the flag and still fires automations on its copies.
+- Tab and Shift+Tab move along the row inside the grid and wrap to the next or previous row; Tab from an open text editor commits it on blur; past the last cell Tab leaves the grid. This is spreadsheet Tab rather than a strict roving tabindex: inner controls of a cell are reached with Enter or arrows, not Tab.
+- Profile photo: public bucket `avatars`, one object per person at `{uid}/avatar`, RLS limits writes to the owner's folder, 2 MB and image types enforced in the policy and in the action. The public URL is stored on the profile with a cache-busting query. Server actions accept 3 MB (`experimental.serverActions.bodySizeLimit`). Removing the photo deletes the object and clears the URL.
+- Export CSV: client side from the bulk bar, the view's visible columns as the cells read on screen, RFC 4180 quoting, UTF-8 BOM so spreadsheets open it with accents intact. Excel and PDF stay out of scope.
+- Parity after this round: 93.2 / 100, must-haves 106 of 107, no open bugs. The one partial must-have is invite email, which the owner gated on a verified sending domain (D-015), so by the skill's rule the verdict stays "not shippable" until the email ships; by the owner's own gate the product is otherwise complete at must-have level.
+

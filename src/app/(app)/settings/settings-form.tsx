@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Kbd } from "@/components/ui/kbd";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { PersonAvatar } from "@/components/ui/avatar-stack";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { shortcuts } from "@/components/shell/shortcuts";
 import { trashWorkspace, updateProfile, updateWorkspace, type FormState } from "../more-actions";
@@ -14,7 +15,7 @@ const kinds = [["mention", "Mentions"], ["assigned", "Assignments"], ["reply", "
 
 type Workspace = { id: string; name: string; timezone: string; role: string };
 
-export function SettingsForm({ profile, zones, muted, workspace }: { profile: { name: string; title: string; timezone: string }; zones: string[]; muted: string[]; workspace: Workspace | null }) {
+export function SettingsForm({ profile, zones, muted, workspace }: { profile: { name: string; title: string; timezone: string; avatarUrl: string | null }; zones: string[]; muted: string[]; workspace: Workspace | null }) {
   const [state, action, pending] = useActionState<FormState, FormData>(updateProfile, {});
   const [ws, wsAction, wsPending] = useActionState<FormState, FormData>(updateWorkspace, {});
   const [trash, trashAction, trashPending] = useActionState<FormState, FormData>(trashWorkspace, {});
@@ -23,6 +24,15 @@ export function SettingsForm({ profile, zones, muted, workspace }: { profile: { 
   return (
     <div className="space-y-8">
       <form action={action} className="space-y-5">
+        <div className="flex items-start gap-4">
+          <PersonAvatar person={{ id: "me", name: profile.name, avatarUrl: profile.avatarUrl }} size={40} className="mt-5" />
+          <div className="space-y-1.5">
+            <Label htmlFor="avatar">Photo</Label>
+            <Input id="avatar" name="avatar" type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="h-auto py-1" />
+            <p className="text-xs text-text-muted">PNG, JPEG, WebP or GIF up to 2 MB. Saved when you press Save.</p>
+            {profile.avatarUrl ? <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="removeAvatar" value="1" className="accent-brand" /> Remove photo</label> : null}
+          </div>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5"><Label htmlFor="name">Name</Label><Input id="name" name="name" defaultValue={profile.name} required maxLength={120} /></div>
           <div className="space-y-1.5"><Label htmlFor="title">Title</Label><Input id="title" name="title" defaultValue={profile.title} placeholder="Product designer" maxLength={120} /></div>

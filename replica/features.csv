@@ -23,7 +23,7 @@ Owner member viewer roles per board,permissions,must,yes,yes,via board_access
 Non-member cannot read a board,permissions,must,yes,yes,RLS; smoke-tested
 Viewer cannot edit cells structure or post updates except comments per permission set,permissions,must,yes,yes,RLS; smoke-tested
 Groups with color title collapse and item count,groups,must,yes,yes,
-Add rename recolor duplicate move archive delete a group,groups,must,yes,partial,no duplicate group yet
+Add rename recolor duplicate move archive delete a group,groups,must,yes,yes,Duplicate group copies live items with cells and subitems; automations and notifications stay quiet during the copy
 Reorder groups by drag-and-drop,groups,must,yes,yes,grip on the group header; pointer or keyboard
 Add an item from the inline add row,items,must,yes,yes,
 Rename an item inline,items,must,yes,yes,
@@ -31,7 +31,7 @@ Reorder items by drag-and-drop,items,must,yes,yes,grip on the row; selected rows
 Move items between groups by drag-and-drop,items,must,yes,yes,drop on a row or a group header
 Duplicate archive delete an item,items,must,yes,yes,via selection bar
 Undo toast after delete,items,should,yes,yes,
-Multi-select with a bulk action bar duplicate move archive delete export,items,must,yes,partial,no export (out of scope)
+Multi-select with a bulk action bar duplicate move archive delete export,items,must,yes,yes,Export CSV of the selected rows with the view's visible columns (Excel and PDF stay out of scope)
 Item chat bubble with update count,items,must,yes,yes,
 Subitems with their own column set,subitems,must,yes,yes,items with parent_item_id
 Subitem roll-up summary on the parent,subitems,should,yes,no,numbers date status tags
@@ -57,20 +57,20 @@ Last updated column,columns,must,yes,yes,derived
 Creation log column,columns,must,yes,yes,derived
 Server-side validation of every column value against its type,columns,must,yes,yes,Postgres function per type
 Inline editing in every cell with optimistic update and rollback toast,editing,must,yes,yes,TanStack Query
-Keyboard navigation in the table arrows tab enter escape,editing,must,yes,partial,"arrows, Enter, Escape; Tab follows DOM order"
+Keyboard navigation in the table arrows tab enter escape,editing,must,yes,yes,"arrows; Tab and Shift+Tab walk the row and wrap to the next or previous row; Enter and Escape; Tab past the last cell leaves the grid"
 Keyboard shortcuts for common actions,editing,must,yes,yes,"? sheet, ⌘K and / search, N add item, G then H/W/I/N go to, grips with Space and arrows"
 Main table view,views,must,yes,yes,
 Kanban view grouped by any status column with chosen card columns,views,must,yes,yes,dnd-kit lanes; add card per lane
 Calendar view day week month with drag to change date,views,must,yes,yes,"react-big-calendar (MIT), date and timeline columns"
 Timeline Gantt view with zoom levels today line drag to move and resize,views,must,yes,yes,own build; colour by group or status
-Chart view bar stacked line pie by column with count sum avg,views,must,yes,partial,"bar, line, pie; stacked bars pending"
-Saved views add rename duplicate set default delete reorder,views,must,yes,partial,no drag reorder
+Chart view bar stacked line pie by column with count sum avg,views,must,yes,yes,"bar, stacked bar by a second column, line, pie; count sum avg min max"
+Saved views add rename duplicate set default delete reorder,views,must,yes,yes,reorder by dragging the grip or Space + arrows; server positions via move_rows
 Filter quick and advanced with and or rules per column type,views,must,yes,yes,
 Person filter,views,must,yes,yes,
 Sort by any column,views,must,yes,yes,
 Search within the board,views,must,yes,yes,
 Group by a column in the table,views,must,yes,yes,
-Filter sort search hide group-by saved per view,views,must,yes,partial,search and person filter are per session
+Filter sort search hide group-by saved per view,views,must,yes,yes,search and person filter save on the view after a short pause for people who can edit it; viewers keep them for the session
 Item detail panel with Updates Files Activity tabs,item panel,must,yes,yes,
 Rich text updates with mentions,item panel,must,yes,yes,TipTap; mentions notify through the database trigger
 Replies to updates,item panel,must,yes,yes,
@@ -126,7 +126,7 @@ Table widget,dashboards,could,yes,no,
 Global search across boards items and updates,search,must,yes,yes,rpc search; command palette pending
 Command palette,search,should,yes,no,
 Light and dark themes,settings,must,yes,yes,
-Profile name avatar timezone,settings,must,yes,partial,"name, title, time zone; avatar upload pending"
+Profile name avatar timezone,settings,must,yes,yes,"name, title, time zone, photo (PNG/JPEG/WebP/GIF up to 2 MB, remove photo)"
 Notification preferences,settings,should,yes,partial,saved on the profile; not yet applied when notifying
 Responsive layout with card list on small screens,mobile,must,yes,yes,table becomes a card list under 768 px
 Installable PWA with manifest and service worker,mobile,must,yes,yes,Serwist worker at /serwist/sw.js (production only) with an offline fallback page

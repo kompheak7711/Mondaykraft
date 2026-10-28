@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, CalendarDays, ChevronDown, GanttChart, KanbanSquare, MoreHorizontal, Plus, Table2 } from "lucide-react";
+import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, horizontalListSortingStrategy, sortableKeyboardCoordinates, useSortable } from "@dnd-kit/sortable";
+import { BarChart3, CalendarDays, ChevronDown, GanttChart, GripVertical, KanbanSquare, MoreHorizontal, Plus, Table2 } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -23,6 +25,7 @@ export function ViewsBar({ snapshot: s, mutations, activeView, onSelect }: { sna
   const [name, setName] = useState("");
   const can = s.access.can_edit_structure;
   const views = s.views.slice().sort((a, b) => a.position - b.position);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const add = async (type: ViewRow["type"]) => {
     const meta = viewTypes.find((v) => v.type === type)!;
@@ -41,37 +44,27 @@ export function ViewsBar({ snapshot: s, mutations, activeView, onSelect }: { sna
     setRenaming(null);
   };
 
+  // Dropping to the right lands after the target; to the left lands before it (after the target's predecessor).
+  const onDragEnd = (e: DragEndEvent) => {
+    if (!e.over || e.over.id === e.active.id) return;
+    const from = views.findIndex((v) => v.id === e.active.id), to = views.findIndex((v) => v.id === e.over!.id);
+    const without = views.filter((v) => v.id !== e.active.id);
+    void mutations.moveView(String(e.active.id), from < to ? String(e.over.id) : to > 0 ? without[to - 1].id : null);
+  };
+
   return (
     <nav aria-label="Views" className="flex h-views-bar shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border px-2 sm:px-4">
-      {views.map((v) => {
-        const meta = viewTypes.find((t) => t.type === v.type) ?? viewTypes[0];
-        const Icon = meta.icon;
-        const active = v.id === activeView?.id;
-        return (
-          <div key={v.id} className={cn("group flex h-full shrink-0 items-center border-b-2", active ? "border-brand" : "border-transparent")}>
-            {renaming?.id === v.id ? (
-              <Input value={name} onChange={(e) => setName(e.target.value)} onBlur={commitRename} onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenaming(null); }} aria-label="View name" className="h-7 w-36" autoFocus maxLength={120} />
-            ) : (
-              <button type="button" aria-current={active ? "page" : undefined} onClick={() => onSelect(v.id)} onDoubleClick={() => { if (can) { setRenaming(v); setName(v.name); } }}
-                className={cn("flex h-8 items-center gap-1.5 rounded-md px-2 text-sm hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-brand", active ? "font-medium text-brand-text" : "text-text-muted")}>
-                <Icon className="size-4" aria-hidden /> {v.name}{v.is_default ? <span className="sr-only"> (default)</span> : null}
-              </button>
-            )}
-            {can && active ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild><IconButton aria-label={`${v.name} view options`} size="sm"><MoreHorizontal /></IconButton></DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onSelect={() => { setRenaming(v); setName(v.name); }}>Rename</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={async () => { const row = await mutations.addView(v.type, `${v.name} copy`, (v.settings as ViewSettings) ?? {}); if (row) onSelect(row.id); }}>Duplicate</DropdownMenuItem>
-                  <DropdownMenuItem disabled={v.is_default} onSelect={() => mutations.setDefaultView(v)}>Set as default</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive" disabled={views.length <= 1} onSelect={() => { mutations.deleteView(v); const other = views.find((x) => x.id !== v.id); if (other) onSelect(other.id); }}>Remove view</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : null}
-          </div>
-        );
-      })}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <SortableContext items={views.map((v) => v.id)} strategy={horizontalListSortingStrategy}>
+          {views.map((v) => (
+            <ViewTab key={v.id} view={v} active={v.id === activeView?.id} can={can} renaming={renaming?.id === v.id} name={name} setName={setName} commitRename={commitRename} cancelRename={() => setRenaming(null)}
+              startRename={() => { setRenaming(v); setName(v.name); }} onSelect={() => onSelect(v.id)}
+              onDuplicate={async () => { const row = await mutations.addView(v.type, `${v.name} copy`, (v.settings as ViewSettings) ?? {}); if (row) onSelect(row.id); }}
+              onDefault={() => mutations.setDefaultView(v)} canRemove={views.length > 1}
+              onRemove={() => { mutations.deleteView(v); const other = views.find((x) => x.id !== v.id); if (other) onSelect(other.id); }} />
+          ))}
+        </SortableContext>
+      </DndContext>
       {can ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="shrink-0 text-text-muted"><Plus /> Add view <ChevronDown className="size-3" /></Button></DropdownMenuTrigger>
@@ -81,5 +74,45 @@ export function ViewsBar({ snapshot: s, mutations, activeView, onSelect }: { sna
         </DropdownMenu>
       ) : null}
     </nav>
+  );
+}
+
+type TabProps = { view: ViewRow; active: boolean; can: boolean; renaming: boolean; name: string; setName: (n: string) => void; commitRename: () => void; cancelRename: () => void; startRename: () => void; onSelect: () => void; onDuplicate: () => void; onDefault: () => void; canRemove: boolean; onRemove: () => void };
+
+/** One tab: a grip to drag it (pointer, or Space + arrows), the name, and the options menu when active. */
+function ViewTab({ view: v, active, can, renaming, name, setName, commitRename, cancelRename, startRename, onSelect, onDuplicate, onDefault, canRemove, onRemove }: TabProps) {
+  const meta = viewTypes.find((t) => t.type === v.type) ?? viewTypes[0];
+  const Icon = meta.icon;
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: v.id, disabled: !can });
+  return (
+    <div ref={setNodeRef} style={{ transform: transform ? `translate3d(${Math.round(transform.x)}px, 0, 0)` : undefined, transition }}
+      className={cn("group flex h-full shrink-0 items-center border-b-2", active ? "border-brand" : "border-transparent", isDragging && "z-10 opacity-60")}>
+      {can ? (
+        <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} aria-label={`Move ${v.name} view`}
+          className="flex size-5 cursor-grab items-center justify-center rounded-sm text-text-muted opacity-0 hover:bg-surface-2 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand group-hover:opacity-100 active:cursor-grabbing">
+          <GripVertical className="size-3.5" />
+        </button>
+      ) : null}
+      {renaming ? (
+        <Input value={name} onChange={(e) => setName(e.target.value)} onBlur={commitRename} onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") cancelRename(); }} aria-label="View name" className="h-7 w-36" autoFocus maxLength={120} />
+      ) : (
+        <button type="button" aria-current={active ? "page" : undefined} onClick={onSelect} onDoubleClick={() => { if (can) startRename(); }}
+          className={cn("flex h-8 items-center gap-1.5 rounded-md px-2 text-sm hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-brand", active ? "font-medium text-brand-text" : "text-text-muted")}>
+          <Icon className="size-4" aria-hidden /> {v.name}{v.is_default ? <span className="sr-only"> (default)</span> : null}
+        </button>
+      )}
+      {can && active ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><IconButton aria-label={`${v.name} view options`} size="sm"><MoreHorizontal /></IconButton></DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onSelect={startRename}>Rename</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onDuplicate}>Duplicate</DropdownMenuItem>
+            <DropdownMenuItem disabled={v.is_default} onSelect={onDefault}>Set as default</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" disabled={!canRemove} onSelect={onRemove}>Remove view</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : null}
+    </div>
   );
 }

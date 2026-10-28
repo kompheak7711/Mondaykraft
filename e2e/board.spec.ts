@@ -32,10 +32,10 @@ test.describe("F02 F03 F06 F07 F08 the board", () => {
   });
 
   test("F07-H1 switches to the Kanban view and back", async ({ page, axe }) => {
-    await page.getByRole("navigation", { name: "Views" }).getByRole("button", { name: /Kanban/ }).click();
+    await page.getByRole("navigation", { name: "Views" }).getByRole("button", { name: "Kanban", exact: true }).click();
     await expect(page.getByRole("region", { name: /Working on it/ })).toBeVisible();
     await axe();
-    await page.getByRole("navigation", { name: "Views" }).getByRole("button", { name: /Main table/ }).click();
+    await page.getByRole("navigation", { name: "Views" }).getByRole("button", { name: /^Main table/ }).click();
     await expect(page.getByRole("grid")).toBeVisible();
   });
 
@@ -60,5 +60,47 @@ test.describe("F02 F03 F06 F07 F08 the board", () => {
     await page.goto(page.url().replace(/\?.*$/, "") + "/automations");
     await page.getByRole("tab", { name: "Run history" }).click();
     await expect(page.getByText("ok").first()).toBeVisible();
+  });
+});
+
+test.describe("F02 F05 groups, Tab order and export", () => {
+  test.beforeEach(async ({ page }) => { await login(page); await openDemoBoard(page); });
+
+  test("F02-H2 duplicates a group with its items, then trashes the copy", async ({ page }) => {
+    await page.getByRole("button", { name: "Done group options" }).click();
+    await page.getByRole("menuitem", { name: "Duplicate group" }).click();
+    const copy = page.getByRole("row").filter({ has: page.getByRole("button", { name: "Done (copy) group options" }) });
+    await expect(copy).toBeVisible();
+    await expect(copy).toContainText("2 items");
+    await page.getByRole("button", { name: "Done (copy) group options" }).click();
+    await page.getByRole("menuitem", { name: "Move group to trash" }).click();
+    await expect(page.getByRole("button", { name: "Done (copy) group options" })).toHaveCount(0);
+  });
+
+  test("F03-E2 Tab and Shift+Tab walk the cells of a row", async ({ page }) => {
+    const row = page.getByRole("row").filter({ hasText: "Write the project brief" });
+    await row.locator("[data-cell]").first().locator("button, a, input, [tabindex]").first().focus();
+    const col = () => page.evaluate(() => (document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-cell]")?.dataset.cell?.split(",")[1] ?? null);
+    expect(await col()).toBe("0");
+    await page.keyboard.press("Tab");
+    expect(await col()).toBe("1");
+    await page.keyboard.press("Tab");
+    expect(await col()).toBe("2");
+    await page.keyboard.press("Shift+Tab");
+    expect(await col()).toBe("1");
+  });
+
+  test("F05-H2 exports the selected rows as CSV", async ({ page }) => {
+    await page.getByRole("checkbox", { name: "Select Write the project brief" }).check();
+    await page.getByRole("checkbox", { name: "Select Agree the timeline" }).check();
+    const bar = page.getByRole("toolbar", { name: "2 items selected" });
+    const [download] = await Promise.all([page.waitForEvent("download"), bar.getByRole("button", { name: "Export CSV" }).click()]);
+    const text = (await import("node:fs/promises")).readFile(await download.path(), "utf8");
+    const lines = (await text).replace(/^﻿/, "").trim().split(/\r?\n/);
+    expect(download.suggestedFilename()).toBe("Project tracker.csv");
+    expect(lines[0]).toMatch(/^Item,Group,Owner,Status/);
+    expect(lines).toHaveLength(3);
+    expect(lines.slice(1).join("\n")).toContain("Write the project brief");
+    await expect(bar).toHaveCount(0);
   });
 });
