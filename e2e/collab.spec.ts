@@ -15,7 +15,6 @@ async function userPage(browser: Browser, who: { email: string; password: string
 
 test.describe("F03 realtime and permissions", () => {
   test("two browsers see each other's edits live", async ({ browser }) => {
-    test.fixme(true, "B-004: a member's status edit does not apply in this two-browser run; tracked in replica/bugs.md");
     const ana = await userPage(browser, DEMO);
     const ben = await userPage(browser, BEN);
     await openDemoBoard(ana);
@@ -26,10 +25,7 @@ test.describe("F03 realtime and permissions", () => {
     await expect(row(ben).getByRole("button", { name: "Status: Stuck" })).toBeVisible({ timeout: 10_000 });
     await row(ben).getByRole("button", { name: /^Status:/ }).click();
     await ben.getByRole("option", { name: /Working on it/ }).click();
-    await ben.waitForTimeout(1500);
-    const dbg = await ben.evaluate(() => ({ toasts: [...document.querySelectorAll("[data-sonner-toast]")].map((t) => t.textContent), labels: [...document.querySelectorAll("button[aria-label^=\"Status:\"]")].map((b) => b.getAttribute("aria-label")) }));
-    expect(dbg.toasts, JSON.stringify(dbg)).toEqual([]);
-    await expect(row(ben).getByRole("button", { name: "Status: Working on it" })).toBeVisible();
+    await expect(row(ben).getByRole("button", { name: "Status: Working on it" })).toBeVisible({ timeout: 15_000 });
     await expect(row(ana).getByRole("button", { name: "Status: Working on it" })).toBeVisible({ timeout: 15_000 });
     await ana.context().close();
     await ben.context().close();
