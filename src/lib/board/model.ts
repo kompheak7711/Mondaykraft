@@ -45,7 +45,7 @@ export const subitemColumns = (s: BoardSnapshot) => s.columns.filter((c) => c.sc
 
 export function visibleColumns(s: BoardSnapshot, view: ViewRow | undefined, scope: "item" | "subitem" = "item") {
   const hidden = new Set(settingsOf(view).hidden_column_ids ?? []);
-  return s.columns.filter((c) => c.scope === scope && !hidden.has(c.id));
+  return s.columns.filter((c) => c.scope === scope && !hidden.has(c.id)).sort((a, b) => a.position - b.position);
 }
 
 export function itemDone(s: BoardSnapshot, idx: CellIndex, item: Item) {

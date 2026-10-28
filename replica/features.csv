@@ -24,11 +24,11 @@ Non-member cannot read a board,permissions,must,yes,yes,RLS; smoke-tested
 Viewer cannot edit cells structure or post updates except comments per permission set,permissions,must,yes,yes,RLS; smoke-tested
 Groups with color title collapse and item count,groups,must,yes,yes,
 Add rename recolor duplicate move archive delete a group,groups,must,yes,partial,no duplicate group yet
-Reorder groups by drag-and-drop,groups,must,yes,partial,menu move up/down; drag pending
+Reorder groups by drag-and-drop,groups,must,yes,yes,grip on the group header; pointer or keyboard
 Add an item from the inline add row,items,must,yes,yes,
 Rename an item inline,items,must,yes,yes,
-Reorder items by drag-and-drop,items,must,yes,no,server-side move_rows ready; drag pending
-Move items between groups by drag-and-drop,items,must,yes,partial,bulk bar move to group; drag pending
+Reorder items by drag-and-drop,items,must,yes,yes,grip on the row; selected rows move together; off while sorted
+Move items between groups by drag-and-drop,items,must,yes,yes,drop on a row or a group header
 Duplicate archive delete an item,items,must,yes,yes,via selection bar
 Undo toast after delete,items,should,yes,yes,
 Multi-select with a bulk action bar duplicate move archive delete export,items,must,yes,partial,no export (out of scope)
@@ -37,7 +37,7 @@ Subitems with their own column set,subitems,must,yes,yes,items with parent_item_
 Subitem roll-up summary on the parent,subitems,should,yes,no,numbers date status tags
 Convert subitem to item and item to subitem,subitems,could,yes,no,
 Column center to add a column by type,columns,must,yes,yes,
-Rename resize reorder duplicate delete a column,columns,must,yes,partial,reorder via menu; drag pending
+Rename resize reorder duplicate delete a column,columns,must,yes,yes,grip on the header or the menu
 Hide columns per view,columns,must,yes,yes,saved in view settings
 Status column with custom labels and colors and a done label,columns,must,yes,yes,
 Person column single or multiple people,columns,must,yes,yes,
@@ -119,7 +119,7 @@ Numbers widget,dashboards,must,yes,yes,sum avg min max count over a numbers colu
 Chart widget bar and pie,dashboards,must,yes,yes,"pie up to six buckets, else bars"
 Battery widget status progress,dashboards,must,yes,yes,
 Workload by person widget,dashboards,must,yes,yes,per ISO week from a date or timeline column
-Resize and reorder widgets,dashboards,must,yes,partial,size steps from the widget settings; drag to reorder pending
+Resize and reorder widgets,dashboards,must,yes,yes,size steps from the widget settings; drag to reorder
 Dashboard filters,dashboards,should,yes,no,
 Main vs private dashboards,dashboards,should,yes,partial,kind stored and enforced; toggle in the UI pending
 Table widget,dashboards,could,yes,no,

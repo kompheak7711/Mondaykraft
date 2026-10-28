@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { BarChart3, BatteryMedium, Hash, LayoutDashboard, Plus, Settings2, Users, X } from "lucide-react";
+import { BarChart3, BatteryMedium, GripVertical, Hash, LayoutDashboard, Plus, Settings2, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
@@ -33,6 +36,7 @@ const widgetTypes = [
 export function DashboardScreen({ dashboardId }: { dashboardId: string }) {
   const supabase = createClient();
   const client = useQueryClient();
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   const q = useQuery({
     queryKey: ["dashboard", dashboardId],
     queryFn: async () => {
@@ -76,6 +80,14 @@ export function DashboardScreen({ dashboardId }: { dashboardId: string }) {
     refresh();
   };
   const patchWidget = async (w: Widget, p: Partial<Pick<Widget, "title" | "settings" | "layout">>) => { const { error } = await supabase.from("widgets").update(p as never).eq("id", w.id); if (error) toast.error(friendlyError(error)); refresh(); };
+  // Widgets read top to bottom by layout.y (ties by creation); a drop rewrites y as the new index.
+  const widgets = d.widgets.slice().sort((a, b) => ((a.layout as Layout | null)?.y ?? 0) - ((b.layout as Layout | null)?.y ?? 0));
+  const reorder = async (e: DragEndEvent) => {
+    if (!e.over || e.active.id === e.over.id) return;
+    const next = arrayMove(widgets, widgets.findIndex((w) => w.id === e.active.id), widgets.findIndex((w) => w.id === e.over!.id));
+    await Promise.all(next.map((w, y) => supabase.from("widgets").update({ layout: { ...((w.layout as Layout | null) ?? { x: 0, w: 6, h: 3 }), y } as never }).eq("id", w.id)));
+    refresh();
+  };
   const dropWidget = async (w: Widget) => { const { error } = await supabase.from("widgets").delete().eq("id", w.id); if (error) toast.error(friendlyError(error)); refresh(); };
   const commitName = async () => { setRenaming(false); if (name.trim() && name.trim() !== d.dash.name) { await supabase.from("dashboards").update({ name: name.trim() }).eq("id", dashboardId); refresh(); } };
 
@@ -117,9 +129,13 @@ export function DashboardScreen({ dashboardId }: { dashboardId: string }) {
         ) : d.widgets.length === 0 ? (
           <EmptyState icon={LayoutDashboard} title="No widgets yet" description="Add a Numbers, Battery, Chart or Workload widget." />
         ) : (
-          <div className="grid grid-cols-12 gap-3" style={{ gridAutoRows: 80 }}>
-            {d.widgets.map((w) => <WidgetFrame key={w.id} widget={w} boards={connected} columns={d.columns} onPatch={(p) => patchWidget(w, p)} onDrop={() => dropWidget(w)} />)}
-          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorder}>
+            <SortableContext items={widgets.map((w) => w.id)} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-12 gap-3" style={{ gridAutoRows: 80 }}>
+                {widgets.map((w) => <WidgetFrame key={w.id} widget={w} boards={connected} columns={d.columns} onPatch={(p) => patchWidget(w, p)} onDrop={() => dropWidget(w)} />)}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </div>
@@ -137,9 +153,11 @@ function WidgetFrame({ widget: w, boards, columns, onPatch, onDrop }: { widget: 
     onPatch({ settings: { ...settings, sources } as never });
   };
   const types = w.type === "numbers" ? ["numbers"] : w.type === "battery" ? ["status"] : w.type === "chart" ? ["status", "priority", "people", "dropdown", "checkbox", "date"] : ["people"];
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: w.id });
   return (
-    <section aria-label={w.title} className="flex min-h-0 flex-col rounded-lg border border-border bg-surface shadow-card" style={{ gridColumn: `span ${layout.w}`, gridRow: `span ${layout.h}` }}>
+    <section ref={setNodeRef} aria-label={w.title} className={cn("flex min-h-0 flex-col rounded-lg border border-border bg-surface shadow-card", isDragging && "z-10 opacity-70 shadow-pop")} style={{ gridColumn: `span ${layout.w}`, gridRow: `span ${layout.h}`, transform: CSS.Transform.toString(transform), transition }}>
       <header className="flex items-center gap-1 px-3 py-1.5">
+        <button type="button" {...attributes} {...listeners} aria-label={`Move ${w.title}`} className="cursor-grab rounded-sm text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand active:cursor-grabbing"><GripVertical className="size-4" /></button>
         <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">{w.title}</h2>
         <Popover>
           <PopoverTrigger asChild><IconButton aria-label={`${w.title} settings`} size="sm"><Settings2 /></IconButton></PopoverTrigger>

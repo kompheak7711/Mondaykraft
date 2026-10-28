@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Copy, EyeOff, MoreHorizontal, Pencil, Plus, Settings2, Trash2 } from "lucide-react";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { ArrowDown, ArrowUp, Copy, EyeOff, GripVertical, MoreHorizontal, Pencil, Plus, Settings2, Trash2 } from "lucide-react";
 import { cn } from "cn";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
@@ -20,10 +21,11 @@ type Props = {
   mutations: BoardMutations;
   onOpenSettings: (c: Column) => void;
   siblings: Column[];
+  dropEdge?: "top" | "bottom" | "left" | "right";
 };
 
 /** A column header: title (rename inline), type icon, sort indicator, menu, resize handle. */
-export function ColumnHeader({ column, view, canEdit, mutations, onOpenSettings, siblings }: Props) {
+export function ColumnHeader({ column, view, canEdit, mutations, onOpenSettings, siblings, dropEdge }: Props) {
   const m = moduleFor(column.type);
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(column.title);
@@ -32,6 +34,9 @@ export function ColumnHeader({ column, view, canEdit, mutations, onOpenSettings,
   const settings = settingsOf(view);
   const sortRule = settings.sort?.find((r) => r.column_id === column.id);
   const index = siblings.findIndex((c) => c.id === column.id);
+  const data = { kind: "column", id: column.id, index };
+  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({ id: `col:${column.id}`, data, disabled: !canEdit });
+  const { setNodeRef: setDropRef } = useDroppable({ id: `col:${column.id}`, data });
 
   const commit = () => {
     setRenaming(false);
@@ -67,7 +72,9 @@ export function ColumnHeader({ column, view, canEdit, mutations, onOpenSettings,
   };
 
   return (
-    <div role="columnheader" aria-sort={sortRule ? (sortRule.dir === "asc" ? "ascending" : "descending") : "none"} style={{ width: column.width }} className="group/col relative flex h-row shrink-0 items-center gap-1 border-r border-b border-border bg-bg px-2 text-xs font-medium text-text-muted">
+    <div ref={(el) => { setDragRef(el); setDropRef(el); }} role="columnheader" aria-sort={sortRule ? (sortRule.dir === "asc" ? "ascending" : "descending") : "none"} style={{ width: column.width }} className={cn("group/col relative flex h-row shrink-0 items-center gap-1 border-r border-b border-border bg-bg px-2 text-xs font-medium text-text-muted", isDragging && "opacity-40")}>
+      {dropEdge ? <span aria-hidden className={cn("pointer-events-none absolute inset-y-0 z-20 w-0.5 bg-brand", dropEdge === "left" ? "left-0" : "right-0")} /> : null}
+      {canEdit ? <button type="button" {...attributes} {...listeners} aria-label={`Move ${column.title} column`} className="-ml-1 flex size-4 shrink-0 cursor-grab items-center justify-center rounded-sm opacity-0 group-hover/col:opacity-100 hover:text-text focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand active:cursor-grabbing"><GripVertical className="size-3.5" /></button> : null}
       <Tooltip>
         <TooltipTrigger asChild><span className="inline-flex"><m.icon className="size-3.5 shrink-0" aria-hidden /></span></TooltipTrigger>
         <TooltipContent>{m.label}{column.description ? `: ${column.description}` : ""}</TooltipContent>

@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Archive, ChevronDown, ChevronRight, Copy, FolderInput, MessageSquare, MoreHorizontal, Plus, Trash2, X } from "lucide-react";
+import { DndContext, DragOverlay, KeyboardSensor, PointerSensor, closestCenter, useDraggable, useDroppable, useSensor, useSensors, type CollisionDetection, type DragEndEvent, type DragOverEvent } from "@dnd-kit/core";
+import { Archive, ChevronDown, ChevronRight, Copy, FolderInput, GripVertical, MessageSquare, MoreHorizontal, Plus, Trash2, X } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -35,6 +36,13 @@ type RowModel =
 
 const SIZES: Record<RowModel["kind"], number> = { section: 44, item: 36, subheader: 32, subitem: 36, addsub: 36, add: 36, footer: 32, addgroup: 48 };
 const LEFT_W = 44;
+type DragData = { kind: "item" | "group" | "column"; id: string; index: number };
+type DropEdge = "top" | "bottom" | "left" | "right";
+/** Like drops on like: items on items or group headers, groups on groups, columns on columns. */
+const collision: CollisionDetection = (args) => {
+  const kind = (args.active.data.current as DragData | undefined)?.kind;
+  return closestCenter({ ...args, droppableContainers: args.droppableContainers.filter((c) => { const k = (c.data.current as DragData | undefined)?.kind; return kind === "item" ? k === "item" || k === "group" : k === kind; }) });
+};
 const NAME_W = 320;
 const TAIL_W = 48;
 const colorVar = (color: string) => `var(--tk-label-${(LABEL_COLORS as readonly string[]).includes(color) ? color : "gray"})`;
@@ -61,10 +69,14 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
   const [collapsed, toggleCollapsed] = usePersistedSet(`tk_collapsed:${s.board.id}`);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor));
+  const [drag, setDrag] = useState<string | null>(null);
+  const [drop, setDrop] = useState<{ id: string; edge: DropEdge } | null>(null);
   const canItems = s.access.can_edit_items;
   const canStructure = s.access.can_edit_structure;
   const baseSettings = settingsOf(view);
   const groupByOn = Boolean(baseSettings.group_by);
+  const rowDrag = !groupByOn && !baseSettings.sort?.length; // manual order means nothing while sorted or grouped by a column
 
   const merged = useMemo(() => ({ ...(view ?? ({ id: "none", settings: {} } as unknown as ViewRow)), settings: { ...baseSettings, search: toolbar.search, person_filter: toolbar.persons } }) as ViewRow, [view, baseSettings, toolbar.search, toolbar.persons]);
   const { sections, shown, filtered } = useMemo(() => applyView(s, index, ctx, merged), [s, index, ctx, merged]);
@@ -131,11 +143,38 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
     return <EmptyState title="No items match" description="Change or clear the filters, search and person filter to see items again." />;
   }
 
+  const dragLabel = (d: DragData | undefined) => (d?.kind === "item" ? s.items.find((i) => i.id === d.id)?.name : d?.kind === "group" ? s.groups.find((g) => g.id === d.id)?.title : s.columns.find((c) => c.id === d?.id)?.title) ?? "";
+  const onDragOver = (e: DragOverEvent) => {
+    const a = e.active.data.current as DragData | undefined, o = e.over?.data.current as DragData | undefined;
+    if (!a || !o || e.active.id === e.over!.id) { setDrop(null); return; }
+    const after = (a.kind === "item" && o.kind === "group") || a.index < o.index;
+    setDrop({ id: String(e.over!.id), edge: a.kind === "column" ? (after ? "right" : "left") : after ? "bottom" : "top" });
+  };
+  const onDragEnd = (e: DragEndEvent) => {
+    setDrag(null); setDrop(null);
+    const a = e.active.data.current as DragData | undefined, o = e.over?.data.current as DragData | undefined;
+    if (!a || !o || e.active.id === e.over!.id) return;
+    // Moving down (or right) lands after the target; moving up lands before it, which is after the target's predecessor.
+    const afterOf = <T extends { id: string }>(list: T[]) => { const k = list.findIndex((x) => x.id === o.id); return a.index < o.index ? o.id : k > 0 ? list[k - 1].id : null; };
+    if (a.kind === "item") {
+      const ids = selected.has(a.id) ? sections.flatMap((sec) => sec.items).filter((i) => selected.has(i.id)).map((i) => i.id) : [a.id];
+      if (o.kind === "group") { void mutations.moveItems(ids, o.id, null); return; }
+      const gid = s.items.find((i) => i.id === o.id)?.group_id;
+      if (!gid) return;
+      void mutations.moveItems(ids, gid, afterOf(s.items.filter((i) => i.group_id === gid && !i.parent_item_id && !ids.includes(i.id)).sort((x, y) => x.position - y.position)));
+    } else if (a.kind === "group") {
+      void mutations.moveGroup(a.id, afterOf(s.groups.filter((g) => g.id !== a.id).sort((x, y) => x.position - y.position)));
+    } else {
+      void mutations.moveColumn(a.id, afterOf(cols.filter((c) => c.id !== a.id)));
+    }
+  };
+  const dropIdOf = (row: RowModel) => (row.kind === "item" ? `item:${row.item.id}` : row.kind === "section" && row.section.group ? `group:${row.section.group.id}` : null);
+
   const toggleSelect = (id: string, on: boolean) => setSelected((prev) => { const n = new Set(prev); if (on) n.add(id); else n.delete(id); return n; });
 
   const renderRow = (row: RowModel, r: number) => {
     switch (row.kind) {
-      case "section": return <SectionRow section={row.section} collapsed={collapsed.has(row.section.key)} onToggle={() => toggleCollapsed(row.section.key)} canStructure={canStructure && !groupByOn} mutations={mutations} snapshot={s} width={totalWidth} />;
+      case "section": return <SectionRow index={r} section={row.section} collapsed={collapsed.has(row.section.key)} onToggle={() => toggleCollapsed(row.section.key)} canStructure={canStructure && !groupByOn} mutations={mutations} snapshot={s} width={totalWidth} />;
       case "item":
       case "subitem": {
         const item = row.item;
@@ -144,9 +183,11 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
         const cells = cellsOf(index, item.id);
         const subCount = row.kind === "item" ? subitemsOf(s, item.id).length : 0;
         return (
-          <div role="row" className={cn("flex h-row", selected.has(item.id) && "bg-brand-soft")} style={{ width: totalWidth }}>
+          <DragRow id={`item:${item.id}`} data={{ kind: "item", id: item.id, index: r }} disabled={row.kind !== "item" || !editable || !rowDrag} label={`Move ${item.name}`} className={cn("flex h-row", selected.has(item.id) && "bg-brand-soft")} style={{ width: totalWidth }}>
+            {(handle) => (<>
             <div role="gridcell" className={cn("sticky left-0 z-10 flex shrink-0 items-center border-r border-b border-border", selected.has(item.id) ? "bg-brand-soft" : "bg-bg")} style={{ width: LEFT_W + NAME_W, borderLeft: `4px solid ${row.kind === "item" ? colorVar(row.section.color) : "transparent"}`, paddingLeft: row.kind === "subitem" ? 28 : 0 }}>
               <div className="flex w-10 shrink-0 items-center justify-center">
+                {handle}
                 <Checkbox checked={selected.has(item.id)} onCheckedChange={(v) => toggleSelect(item.id, v === true)} aria-label={`Select ${item.name}`} className={cn(!selected.has(item.id) && "opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100")} />
               </div>
               {row.kind === "item" ? (
@@ -166,7 +207,8 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
                 flash={Boolean(flashes[cellKey(item.id, c.id)])} onChange={(v) => mutations.setCell(item, c, v)} style={{ width: c.width }} />
             ))}
             <div className="flex-1 border-b border-border" />
-          </div>
+            </>)}
+          </DragRow>
         );
       }
       case "subheader":
@@ -209,18 +251,20 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
   };
 
   return (
+    <DndContext sensors={sensors} collisionDetection={collision} onDragStart={(e) => setDrag(dragLabel(e.active.data.current as DragData))} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={() => { setDrag(null); setDrop(null); }}>
     <div className="relative flex h-full flex-col">
       <div ref={scrollRef} className="relative h-full overflow-auto" onKeyDown={onKeyDown}>
         <div role="grid" aria-label={s.board.name} aria-rowcount={rows.length} style={{ width: totalWidth, minWidth: "100%" }}>
           <div role="row" className="sticky top-0 z-20 flex bg-bg" style={{ width: totalWidth }}>
             <div role="columnheader" className="sticky left-0 z-30 flex shrink-0 items-center border-r border-b border-border bg-bg px-3 text-xs font-medium text-text-muted" style={{ width: LEFT_W + NAME_W }}>Item</div>
-            {cols.map((c) => <ColumnHeader key={c.id} column={c} view={view} canEdit={canStructure} mutations={mutations} onOpenSettings={(col) => ctx.onOpenColumnSettings?.(col)} siblings={cols} />)}
+            {cols.map((c) => <ColumnHeader key={c.id} column={c} view={view} canEdit={canStructure} mutations={mutations} onOpenSettings={(col) => ctx.onOpenColumnSettings?.(col)} siblings={cols} dropEdge={drop?.id === `col:${c.id}` ? drop.edge : undefined} />)}
             <div role="columnheader" className="flex flex-1 items-center border-b border-border px-1">{canStructure ? <AddColumnButton scope="item" mutations={mutations} /> : null}</div>
           </div>
           <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
             {virtualizer.getVirtualItems().map((v) => (
               <div key={v.key} data-index={v.index} className="group/row absolute top-0 left-0" style={{ transform: `translateY(${v.start}px)`, width: totalWidth, height: v.size }}>
                 {renderRow(rows[v.index], v.index)}
+                {drop && drop.id === dropIdOf(rows[v.index]) ? <div aria-hidden className={cn("pointer-events-none absolute inset-x-0 z-30 h-0.5 bg-brand", drop.edge === "top" ? "top-0" : "bottom-0")} /> : null}
               </div>
             ))}
           </div>
@@ -228,7 +272,19 @@ export function TableView({ snapshot: s, index, ctx, mutations, view, toolbar, f
       </div>
       {selected.size > 0 ? <BulkBar count={selected.size} ids={Array.from(selected)} snapshot={s} mutations={mutations} onClear={() => setSelected(new Set())} /> : null}
     </div>
+    <DragOverlay>{drag ? <div className="w-max max-w-xs truncate rounded-md border border-border bg-bg px-2 py-1 text-sm shadow-pop">{drag}</div> : null}</DragOverlay>
+    </DndContext>
   );
+}
+
+/** An item row that can be picked up by its grip and dropped on another row or a group header. */
+function DragRow({ id, data, disabled, label, className, style, children }: { id: string; data: DragData; disabled: boolean; label: string; className?: string; style?: React.CSSProperties; children: (handle: React.ReactNode) => React.ReactNode }) {
+  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({ id, data, disabled });
+  const { setNodeRef: setDropRef } = useDroppable({ id, data, disabled });
+  const handle = disabled ? <span className="w-4 shrink-0" /> : (
+    <button type="button" {...attributes} {...listeners} aria-label={label} className="flex size-4 shrink-0 cursor-grab items-center justify-center rounded-sm text-text-muted opacity-0 group-hover/row:opacity-100 hover:text-text focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand active:cursor-grabbing"><GripVertical className="size-3.5" /></button>
+  );
+  return <div ref={(el) => { setDragRef(el); setDropRef(el); }} role="row" className={cn(className, isDragging && "opacity-40")} style={style}>{children(handle)}</div>;
 }
 
 function NameCell({ item, editable, mutations, href }: { item: Item; editable: boolean; mutations: BoardMutations; href: string }) {
@@ -270,20 +326,24 @@ function AddRow({ width, indent, label, color, onAdd }: { width: number; indent:
   );
 }
 
-function SectionRow({ section, collapsed, onToggle, canStructure, mutations, snapshot: s, width }: { section: Section; collapsed: boolean; onToggle: () => void; canStructure: boolean; mutations: BoardMutations; snapshot: BoardSnapshot; width: number }) {
+function SectionRow({ index, section, collapsed, onToggle, canStructure, mutations, snapshot: s, width }: { index: number; section: Section; collapsed: boolean; onToggle: () => void; canStructure: boolean; mutations: BoardMutations; snapshot: BoardSnapshot; width: number }) {
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(section.title);
   const group = section.group;
   const groups = s.groups.slice().sort((a, b) => a.position - b.position);
   const gi = group ? groups.findIndex((g) => g.id === group.id) : -1;
+  const data: DragData = { kind: "group", id: group?.id ?? "", index };
+  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({ id: `group:${group?.id ?? section.key}`, data, disabled: !canStructure || !group });
+  const { setNodeRef: setDropRef } = useDroppable({ id: `group:${group?.id ?? section.key}`, data, disabled: !group });
   const commit = () => {
     setRenaming(false);
     if (group && title.trim() && title.trim() !== group.title) mutations.updateGroup(group, { title: title.trim() });
     else setTitle(section.title);
   };
   return (
-    <div role="row" className="flex h-11 items-end" style={{ width }}>
+    <div ref={(el) => { setDragRef(el); setDropRef(el); }} role="row" className={cn("flex h-11 items-end", isDragging && "opacity-40")} style={{ width }}>
       <div role="gridcell" className="sticky left-0 z-10 flex h-9 items-center gap-1 bg-bg pr-2" style={{ maxWidth: "100%" }}>
+        {canStructure && group ? <button type="button" {...attributes} {...listeners} aria-label={`Move ${group.title} group`} className="flex size-6 cursor-grab items-center justify-center rounded-sm text-text-muted hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-brand active:cursor-grabbing"><GripVertical className="size-4" /></button> : null}
         <button type="button" onClick={onToggle} aria-expanded={!collapsed} aria-label={collapsed ? `Expand ${section.title}` : `Collapse ${section.title}`} className="flex size-7 items-center justify-center rounded-sm hover:bg-surface-2" style={{ color: colorVar(section.color) }}>
           {collapsed ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
         </button>

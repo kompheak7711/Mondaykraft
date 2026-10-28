@@ -28,3 +28,6 @@ Only reproduced defects. Severity: S1 data loss or security, S2 feature broken, 
 
 ## B-005 · S3 · fixed · Group footer battery announced an empty label
 - Steps: run the full suite; F03-H1 axe scan reports `role-img-alt` on `span[aria-label=""]`. The footer battery for a status column rendered whenever the summary array existed, including when every item in the group had an empty status, so the label was an empty string. Fix: render only when the array has entries (`src/components/board/table-view.tsx`).
+
+## B-006 · S3 · fixed · Moving a column only showed after a reload
+- Steps: Project tracker, Owner column menu, Move right. Expected: the header order changes at once. Actual: nothing moved until the page reloaded; the database had the new positions. Cause: `visibleColumns` returned columns in load order and never re-sorted by position after the optimistic patch or the realtime row. Fix: sort by position in `src/lib/board/model.ts`. Found while writing the drag cases (e2e/drag.spec.ts).
