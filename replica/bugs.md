@@ -34,3 +34,6 @@ Only reproduced defects. Severity: S1 data loss or security, S2 feature broken, 
 
 ## B-007 · S2 · fixed · File uploads were always refused by storage
 - Steps: any board, Files column, Upload, pick a file. Expected: the file appears in the cell. Actual: "Could not upload" and the file never reached storage (`storage.objects` had 0 rows). Cause: in the three storage policies the unqualified `name` inside `exists (select 1 from assets a where a.storage_path = name ...)` resolved to `assets.name`, the file name, so the path never matched. Fix: migration `20261028040000_storage_policies.sql` compares against `objects.name`. Found by the new upload case in e2e/members.spec.ts; the earlier manual check only saw the asset row, not the object.
+
+## Status after round two (2026-10-28)
+Open: none at S1 or S2; none at S3 or S4. Fixed this round: B-004 (S2), B-005 (S3), B-006 (S3), B-007 (S2). Suite: 33 Playwright cases and 12 Vitest tests pass; schema check passes.

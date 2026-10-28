@@ -21,6 +21,8 @@ pnpm dev                            # http://localhost:3000
 
 Demo login after `pnpm seed`: `demo.ana@example.com` / `taskraft-demo-1` (owner), `demo.ben@example.com` (member), `demo.viv@example.com` (viewer), same password.
 
+Offline and install: edits made offline stay on screen and sync when the connection returns (the top bar shows how many are waiting). The service worker (`src/app/sw.ts`, served at `/serwist/sw.js`) is registered in production builds only, so `pnpm dev` and the tests run without it; `pnpm build && pnpm start` to try the installable app and the offline page.
+
 ## Scripts
 
 | script | what it does |

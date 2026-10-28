@@ -28,12 +28,12 @@ Flows from `replica/recon.md`. Automated cases live in `e2e/*.spec.ts` (Playwrig
 | F12-H1 | search | finds a seeded item | automated, pass |
 | F12-E1 | search | no hits says so | automated, pass |
 | F13-H1 | trash | delete an item, restore it from the trash | automated, pass |
-| F14-H1 | mobile | shell works at 390px with the drawer | (m) to check: table card layout pending |
+| F14-H1 | mobile | shell works at 390px with the drawer; the table is a card list | automated, pass (e2e/offline.spec.ts) |
 | F15-H1 | board menu | duplicate with items, archive, trash | duplicate by hand; archive/trash (m) |
 | A11y | all | axe serious/critical = 0 on login, home, board, kanban, item panel, my work, notifications, inbox, members, trash, settings | automated, pass |
 
-Edge cases still open (to check, not yet reproduced as bugs): two tabs editing the same cell, offline edits, 2,000-row boards, time zones around midnight for date automations, screen reader pass on the table grid.
+Edge cases now automated: two tabs on one cell (held cell waits), offline edits (queued and synced), the 2,000-row board. Still open (to check): time zones around midnight for date automations, screen reader pass on the table grid, upload retry after a real network failure (the Retry button is exercised only by code review).
 
 Run: `pnpm seed` once, then `pnpm exec playwright test`.
 
-Round two additions (e2e/collab.spec.ts, tests/*.test.ts): two-browser live edits (pass, B-004 fixed), held cell while typing (pass), viewer locked (pass), non-member private board (pass), 2,000-item board (pass); Vitest: 12 unit and database tests (pass).
+Round two additions: e2e/collab.spec.ts (two-browser live edits, held cell, viewer locked, non-member private board, 2,000-item board), e2e/drag.spec.ts (rows and groups, columns, widgets by keyboard), e2e/offline.spec.ts (offline edit queued and synced, phone card list), e2e/settings.spec.ts (shortcuts, workspace rename), e2e/members.spec.ts (members panel with roles and crown, activity log, file upload and removal); Vitest tests/*.test.ts: 12 unit and database tests. Last full run: 33 passed, 0 skipped.
